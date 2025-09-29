@@ -7,7 +7,7 @@ import { useEffect } from "react";
 
 import { useLicense } from "@/hooks/use-license";
 import { commands as localLlmCommands, type CustomModelInfo, type ModelSelection } from "@hypr/plugin-local-llm";
-import { commands as windowsCommands } from "@hypr/plugin-windows";
+// windowsCommands import removed - no longer needed
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
 import { type LLMModel, SharedLLMProps } from "./shared";
@@ -119,10 +119,10 @@ export function LLMLocalView({
               <div className="relative flex-1">
                 <button
                   onClick={handleHyprCloudSelection}
-                  disabled={!isPro}
+                  disabled={false}
                   className={cn(
                     buttonResetClass,
-                    isPro ? "cursor-pointer" : "cursor-not-allowed",
+                    "cursor-pointer",
                     "block w-full",
                   )}
                 >
@@ -152,24 +152,7 @@ export function LLMLocalView({
                 </button>
               </div>
 
-              {!isPro && (
-                <Button
-                  onClick={() => {
-                    windowsCommands.windowShow({ type: "settings" }).then(() => {
-                      setTimeout(() => {
-                        windowsCommands.windowEmitNavigate({ type: "settings" }, {
-                          path: "/app/settings",
-                          search: { tab: "billing" },
-                        });
-                      }, 500);
-                    });
-                  }}
-                  size="sm"
-                  className="ml-4 bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  Upgrade to Pro
-                </Button>
-              )}
+              {/* Upgrade to Pro button removed - all users have access to HyprCloud */}
             </div>
           </div>
 
