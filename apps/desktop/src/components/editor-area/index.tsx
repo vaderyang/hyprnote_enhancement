@@ -9,6 +9,7 @@ import { useHypr } from "@/contexts";
 import { extractTextFromHtml } from "@/utils/parse";
 import { autoTagGeneration } from "@/utils/tag-generation";
 import { TemplateService } from "@/utils/template-service";
+import { countWordsFromWordArray } from "@hypr/utils";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
@@ -475,11 +476,12 @@ export function useEnhanceMutation({
       }
 
       const wordsThreshold = import.meta.env.DEV ? 5 : 100;
-      if (!words.length || words.length < wordsThreshold) {
+      const actualWordCount = countWordsFromWordArray(words);
+      if (!words.length || actualWordCount < wordsThreshold) {
         toast({
           id: "short-timeline",
           title: "Recording too short",
-          content: `We need at least ${wordsThreshold} words to enhance your note.`,
+          content: `We need at least ${wordsThreshold} words to enhance your note. Found ${actualWordCount} words.`,
           dismissible: true,
           duration: 5000,
         });
