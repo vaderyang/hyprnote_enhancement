@@ -266,7 +266,10 @@ export function LLMCustomView({
   return (
     <div className="space-y-6">
       <div className="max-w-2xl space-y-4">
-        {/* OpenAI Accordion */}
+        {
+          /*
+        {/* OpenAI Accordion (HIDDEN) */
+          /*
         <div
           className={cn(
             "border rounded-lg transition-all duration-150 ease-in-out cursor-pointer",
@@ -561,7 +564,10 @@ export function LLMCustomView({
           )}
         </div>
 
-        {/* Custom Endpoint Accordion */}
+        */
+        }
+
+        {/* Netis Accordion */}
         <div
           className={cn(
             "border rounded-lg transition-all duration-150 ease-in-out cursor-pointer",
@@ -576,11 +582,17 @@ export function LLMCustomView({
           >
             <div className="flex items-center justify-between">
               <div className="flex flex-col">
-                <span className="font-medium">
-                  <Trans>Others</Trans>
-                </span>
+                <div className="flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                    <path d="M23.9996 12.0235C17.5625 12.4117 12.4114 17.563 12.0232 24H11.9762C11.588 17.563 6.4369 12.4117 0 12.0235V11.9765C6.4369 11.5883 11.588 6.43719 11.9762 0H12.0232C12.4114 6.43719 17.5625 11.5883 23.9996 11.9765V12.0235Z">
+                    </path>
+                  </svg>
+                  <span className="font-medium">
+                    <Trans>Netis</Trans>
+                  </span>
+                </div>
                 <p className="text-xs font-normal text-neutral-500 mt-1">
-                  <Trans>Connect to a self-hosted or third-party LLM endpoint (OpenAI API compatible)</Trans>
+                  <Trans>Access Netis AI Model Service</Trans>
                 </p>
               </div>
               <div className="text-neutral-400">
@@ -594,6 +606,8 @@ export function LLMCustomView({
               <div className="mt-4">
                 <Form {...customForm}>
                   <form className="space-y-4">
+                    {
+                      /*
                     <FormField
                       control={customForm.control}
                       name="api_base"
@@ -640,6 +654,8 @@ export function LLMCustomView({
                         </FormItem>
                       )}
                     />
+                    */
+                    }
 
                     <FormField
                       control={customForm.control}
@@ -647,14 +663,8 @@ export function LLMCustomView({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-sm font-medium">
-                            <Trans>Model Name</Trans>
+                            <Trans>Model</Trans>
                           </FormLabel>
-                          <FormDescription className="text-xs">
-                            <Trans>
-                              Select a model from the dropdown (if available) or manually enter the model name required
-                              by your endpoint.
-                            </Trans>
-                          </FormDescription>
                           <FormControl>
                             {othersModels.isLoading && !field.value
                               ? (
@@ -683,7 +693,7 @@ export function LLMCustomView({
                               : (
                                 <Input
                                   {...field}
-                                  placeholder="Enter model name (endpoint has no discoverable models)"
+                                  placeholder="gpt-4o"
                                 />
                               )}
                           </FormControl>

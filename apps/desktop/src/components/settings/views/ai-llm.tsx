@@ -491,9 +491,9 @@ export default function LlmAI() {
     resolver: zodResolver(customSchema),
     mode: "onChange",
     defaultValues: {
-      api_base: "",
-      api_key: "",
-      model: "",
+      api_base: "http://v.netis.com.cn:13000/v1",
+      api_key: "sk-418Nlx53Dvu87o-TWOgyJg",
+      model: "gpt-4o",
     },
   });
 
@@ -658,6 +658,8 @@ export default function LlmAI() {
 
   return (
     <div className="space-y-8">
+      {
+        /*
       <Tabs
         value={activeTab}
         onValueChange={(value) => setActiveTab(value as "default" | "custom")}
@@ -668,13 +670,19 @@ export default function LlmAI() {
             <Trans>Default</Trans>
           </TabsTrigger>
           <TabsTrigger value="custom">
-            <Trans>Custom</Trans>
+            <Trans>AI Provider</Trans>
           </TabsTrigger>
         </TabsList>
       </Tabs>
+      */
+      }
 
+      {
+        /*
       {activeTab === "default" && <LLMLocalView {...localLlmProps} />}
-      {activeTab === "custom" && (
+      */
+      }
+      {(
         <div className="space-y-8">
           <LLMCustomView {...customEndpointProps} />
 

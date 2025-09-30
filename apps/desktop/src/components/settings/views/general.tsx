@@ -104,7 +104,7 @@ export default function General() {
       autostart: false,
       displayLanguage: "en",
       spokenLanguages: ["en"],
-      telemetryConsent: true,
+      telemetryConsent: false,
       jargons: "",
       saveRecordings: true,
       summaryLanguage: "en",
@@ -117,7 +117,7 @@ export default function General() {
         autostart: config.data.general.autostart ?? false,
         displayLanguage: config.data.general.display_language ?? "en",
         spokenLanguages: config.data.general.spoken_languages ?? ["en"],
-        telemetryConsent: config.data.general.telemetry_consent ?? true,
+        telemetryConsent: config.data.general.telemetry_consent ?? false,
         jargons: (config.data.general.jargons ?? []).join(", "),
         saveRecordings: config.data.general.save_recordings ?? true,
         summaryLanguage: config.data.general.summary_language ?? "en",
@@ -136,7 +136,7 @@ export default function General() {
         autostart: v.autostart ?? false,
         display_language: v.displayLanguage,
         spoken_languages: v.spokenLanguages,
-        telemetry_consent: v.telemetryConsent ?? true,
+        telemetry_consent: v.telemetryConsent ?? false,
         jargons: v.jargons.split(",").map((jargon) => jargon.trim()).filter(Boolean),
         save_recordings: v.saveRecordings ?? true,
         selected_template_id: config.data.general.selected_template_id,
@@ -236,6 +236,8 @@ export default function General() {
             )}
           />
 
+          {
+            /*
           <FormField
             control={form.control}
             name="telemetryConsent"
@@ -265,6 +267,8 @@ export default function General() {
               </FormItem>
             )}
           />
+          */
+          }
 
           <FormField
             control={form.control}

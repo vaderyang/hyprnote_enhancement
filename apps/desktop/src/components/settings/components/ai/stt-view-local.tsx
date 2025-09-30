@@ -144,12 +144,16 @@ export function STTViewLocal({
         userId={userId}
       />
 
-      {/* Divider - only show if pro models available */}
+      {
+        /*
+      {/* Divider - only show if pro models available (HIDDEN) */
+        /*
       {amAvailable && (
         <>
           <hr className="border-gray-200" />
 
-          {/* Pro Models Section */}
+          {/* Pro Models Section */
+          /*
           <ProModelsSection
             status={servers.data?.external}
             selectedSTTModel={selectedSTTModel}
@@ -162,6 +166,8 @@ export function STTViewLocal({
           />
         </>
       )}
+      */
+      }
     </div>
   );
 }

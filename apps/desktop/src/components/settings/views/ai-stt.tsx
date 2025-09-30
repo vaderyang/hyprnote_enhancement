@@ -117,7 +117,7 @@ export default function SttAI() {
             <Trans>Default</Trans>
           </TabsTrigger>
           <TabsTrigger value="custom">
-            <Trans>Custom</Trans>
+            <Trans>Netis</Trans>
           </TabsTrigger>
         </TabsList>
         <TabsContent value="default">
