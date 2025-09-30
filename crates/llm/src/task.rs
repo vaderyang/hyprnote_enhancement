@@ -10,6 +10,20 @@ pub async fn generate_title(
 ) -> Result<String, crate::Error> {
     let model = provider.get_model().await?;
 
+    // Only use grammar for English titles, as the grammar only supports ASCII characters
+    let summary_language = ctx
+        .get("config")
+        .and_then(|c| c.get("general"))
+        .and_then(|g| g.get("summary_language"))
+        .and_then(|l| l.as_str())
+        .unwrap_or("en");
+
+    let grammar = if summary_language == "en" {
+        Some(Grammar::Title.build())
+    } else {
+        None
+    };
+
     let stream = model.generate_stream(hypr_llama::LlamaRequest {
         messages: vec![
             hypr_llama::LlamaMessage {
@@ -22,7 +36,7 @@ pub async fn generate_title(
             },
         ],
         max_tokens: Some(30),
-        grammar: Some(Grammar::Title.build()),
+        grammar,
         ..Default::default()
     })?;
 
