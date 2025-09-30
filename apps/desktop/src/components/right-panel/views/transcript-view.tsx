@@ -50,7 +50,7 @@ export function TranscriptView() {
   const { words, partialWords, finalWords, isLive } = useTranscript(sessionId);
   const showEmptyMessage = sessionId && words.length <= 0 && !isLive;
 
-  const { hidePanel, currentView, userInitiatedExpand } = useRightPanel();
+  const { hidePanel, currentView } = useRightPanel();
   const wasLiveRef = useRef(false);
   const autoCollapseEnabledRef = useRef(false);
 
