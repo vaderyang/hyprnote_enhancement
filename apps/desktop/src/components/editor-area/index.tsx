@@ -73,8 +73,10 @@ async function generateTitleDirect(
   queryClient: QueryClient,
 ) {
   const config = await dbCommands.getConfig();
+  // Extract plain text from HTML for cleaner title generation
+  const plainTextContent = extractTextFromHtml(enhancedContent);
   const title = await localLlmCommands.generateTitle({
-    enhanced_note: enhancedContent,
+    enhanced_note: plainTextContent,
     config,
   });
 
