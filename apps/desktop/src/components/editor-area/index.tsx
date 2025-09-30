@@ -72,8 +72,10 @@ async function generateTitleDirect(
   sessions: Record<string, any>,
   queryClient: QueryClient,
 ) {
+  const config = await dbCommands.getConfig();
   const title = await localLlmCommands.generateTitle({
     enhanced_note: enhancedContent,
+    config,
   });
 
   const session = await dbCommands.getSession({ id: targetSessionId });
@@ -169,7 +171,10 @@ export default function EditorArea({
   });
 
   const preMeetingNote = useSession(sessionId, (s) => s.session.pre_meeting_memo_html) ?? "";
-  const hasTranscriptWords = useSession(sessionId, (s) => s.session.words.length > (import.meta.env.DEV ? 5 : 100));
+  const hasTranscriptWords = useSession(sessionId, (s) => {
+    const wordCount = countWordsFromWordArray(s.session.words);
+    return wordCount > (import.meta.env.DEV ? 5 : 100);
+  });
 
   const llmConnectionQuery = useQuery({
     queryKey: ["llm-connection"],
