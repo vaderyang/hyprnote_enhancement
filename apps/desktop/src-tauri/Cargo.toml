@@ -3,7 +3,7 @@ name = "desktop"
 version = "0.0.82"
 authors = ["you"]
 edition = "2021"
-description = "Hyprnote Desktop App"
+description = "Pinote Desktop App"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -11,7 +11,7 @@ description = "Hyprnote Desktop App"
 # The `_lib` suffix may seem redundant but it is necessary
 # to make the lib name unique and wouldn't conflict with the bin name.
 # This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
-name = "hyprnote_desktop_lib"
+name = "pinote_desktop_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

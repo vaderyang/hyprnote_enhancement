@@ -46,7 +46,7 @@ export default function HelpSupport() {
                   <Trans>Documentation</Trans>
                 </div>
                 <div className="text-sm text-gray-500">
-                  <Trans>Learn how to use Hyprnote</Trans>
+                  Learn how to use Pinote
                 </div>
               </div>
             </div>
@@ -113,6 +113,13 @@ export default function HelpSupport() {
           {/* User ID */}
           <div className="text-sm text-gray-500">
             User ID: <span className="font-mono bg-gray-100 px-1 rounded select-text cursor-text">{userId}</span>
+          </div>
+
+          {/* Hyprnote Credit */}
+          <div className="mt-6 pt-4 border-t border-gray-200">
+            <p className="text-sm text-gray-500">
+              Powered by <a href="https://hyprnote.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Hyprnote</a>
+            </p>
           </div>
         </div>
       </div>

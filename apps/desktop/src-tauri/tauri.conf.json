@@ -1,9 +1,9 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "version": "0.0.82",
-  "productName": "Hyprnote Dev",
-  "mainBinaryName": "Hyprnote Dev",
-  "identifier": "com.hyprnote.dev",
+  "productName": "Pinote Dev",
+  "mainBinaryName": "Pinote Dev",
+  "identifier": "com.pinote.dev",
   "build": {
     "beforeDevCommand": "pnpm -F desktop dev",
     "devUrl": "http://localhost:1420",
@@ -61,7 +61,7 @@
           "./windows/fragments/registry.wxs"
         ],
         "componentRefs": [
-          "HyprnoteRegistryEntries"
+          "PinoteRegistryEntries"
         ]
       }
     },
