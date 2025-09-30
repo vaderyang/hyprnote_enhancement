@@ -2,10 +2,32 @@
 {{ enhanced_note }}
 </note>
 
-Generate a concise title for the above note in {{ config.general.summary_language | language }}.
+Generate a concise title that describes the PURPOSE or MAIN TOPIC of this meeting in {{ config.general.summary_language | language }}.
 
-Requirements:
-- Focus on the main topic/purpose of the meeting
-- Keep it brief and descriptive
-- Output ONLY the plain title text without any formatting, quotes, or symbols
-- Example good titles: "Weekly Team Sync", "Q4 Budget Planning", "Product Roadmap Discussion"
+GOOD examples (state what the meeting is about):
+{% if config.general.summary_language == "zh" -%}
+- "公章审批和告警系统生命周期管理"
+- "关于标题和告警的语音测试"
+- "产品路线图讨论"
+- "第一季度预算规划"
+{%- else -%}
+- "Weekly Team Sync"
+- "Q4 Budget Planning"
+- "Product Roadmap Discussion"
+- "Customer Feedback Review"
+{%- endif %}
+
+BAD examples (meta-descriptions, with punctuation or prefixes):
+{% if config.general.summary_language == "zh" -%}
+- "Meeting Note Title Options" (English when Chinese requested)
+- "关键议题：公章审批与告警系统管理" (has prefix and colon)
+- "会议笔记：系统维护讨论" (has prefix and colon)
+- "公章审批会议。" (has period at end)
+{%- else -%}
+- "Meeting Note Title Options" (meta-description, not topic)
+- "Key Topics: Seal Approval and System Management" (has prefix and colon)
+- "Meeting Notes: System Maintenance" (has prefix and colon)
+- "Seal Approval Meeting." (has period at end)
+{%- endif %}
+
+Output ONLY the title text - no quotes, no symbols, no punctuation.
