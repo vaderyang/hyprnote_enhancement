@@ -14,7 +14,6 @@ import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { events as localLlmEvents } from "@hypr/plugin-local-llm";
-import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as templateCommands, type Grammar } from "@hypr/plugin-template";
 import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
@@ -22,7 +21,7 @@ import Renderer from "@hypr/tiptap/renderer";
 import { extractHashtags } from "@hypr/tiptap/shared";
 import { toast } from "@hypr/ui/components/ui/toast";
 import { cn } from "@hypr/ui/lib/utils";
-import { localProviderName, modelProvider, smoothStream, streamText } from "@hypr/utils/ai";
+import { generateText, localProviderName, modelProvider, smoothStream, streamText } from "@hypr/utils/ai";
 import { useOngoingSession, useSession, useSessions } from "@hypr/utils/contexts";
 import { globalEditorRef } from "../../shared/editor-ref";
 import { enhanceFailedToast } from "../toast/shared";
@@ -71,19 +70,50 @@ async function generateTitleDirect(
   targetSessionId: string,
   sessions: Record<string, any>,
   queryClient: QueryClient,
+  onboardingSessionId: string,
 ) {
-  const config = await dbCommands.getConfig();
-  // Extract plain text from HTML for cleaner title generation
-  const plainTextContent = extractTextFromHtml(enhancedContent);
-  const title = await localLlmCommands.generateTitle({
-    enhanced_note: plainTextContent,
-    config,
-  });
+  try {
+    const config = await dbCommands.getConfig();
+    // Extract plain text from HTML for cleaner title generation
+    const plainTextContent = extractTextFromHtml(enhancedContent);
 
-  const session = await dbCommands.getSession({ id: targetSessionId });
-  if (!session?.title && sessions[targetSessionId]?.getState) {
-    const cleanedTitle = title.replace(/^["']|["']$/g, "").trim();
-    sessions[targetSessionId].getState().updateTitle(cleanedTitle);
+    // Render the title generation prompts using the same template system as summary
+    const systemPrompt = await templateCommands.render("create_title.system", {
+      config,
+    });
+    const userPrompt = await templateCommands.render("create_title.user", {
+      config,
+      enhanced_note: plainTextContent,
+    });
+
+    console.log("🎯 TITLE GENERATION - Using same model as summary");
+    console.log("📋 System Prompt:", systemPrompt);
+    console.log("📋 User Prompt:", userPrompt.substring(0, 200) + "...");
+
+    // Use the same model provider as summary generation
+    const provider = await modelProvider();
+    const model = targetSessionId === onboardingSessionId
+      ? provider.languageModel("onboardingModel")
+      : provider.languageModel("defaultModel");
+
+    // Generate title with the same model as summary
+    const { text } = await generateText({
+      model,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+    });
+
+    console.log("✅ Generated title:", text);
+
+    const session = await dbCommands.getSession({ id: targetSessionId });
+    if (!session?.title && sessions[targetSessionId]?.getState) {
+      const cleanedTitle = text.replace(/^["']|["']$/g, "").trim();
+      sessions[targetSessionId].getState().updateTitle(cleanedTitle);
+    }
+  } catch (error) {
+    console.error("❌ Title generation failed:", error);
   }
 
   // check and run auto tag generation if the session has less than 2 tags
@@ -193,7 +223,7 @@ export default function EditorArea({
     isLocalLlm: llmConnectionQuery.data?.type === "HyprLocal",
     onSuccess: (content) => {
       if (hasTranscriptWords) {
-        generateTitleDirect(content, sessionId, sessionsStore, queryClient).catch(console.error);
+        generateTitleDirect(content, sessionId, sessionsStore, queryClient, onboardingSessionId).catch(console.error);
       }
 
       if (sessionId !== onboardingSessionId) {
