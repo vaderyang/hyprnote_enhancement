@@ -191,6 +191,16 @@ pub async fn main() {
                 let _ = autostart_manager.disable();
             }
 
+            // Apply window vibrancy on macOS
+            #[cfg(target_os = "macos")]
+            {
+                use tauri::Manager;
+                if let Some(window) = app.get_webview_window("main") {
+                    use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial};
+                    let _ = apply_vibrancy(&window, NSVisualEffectMaterial::HudWindow, None, None);
+                }
+            }
+
             let app_clone = app.clone();
             tokio::spawn(async move {
                 if let Err(e) = app_clone.setup_db_for_local().await {
