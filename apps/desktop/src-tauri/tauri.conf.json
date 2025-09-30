@@ -83,7 +83,7 @@
       "dialog": true,
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEFFNUI0ODhBNzhBMTEwQQpSV1FLRVlxbmlMVGxDdXJvaUVTTnlwNEF5R1Bodzh3WThMZUpNMVk4K0hhbnV4TDZ1TFFucC9Gbwo=",
       "endpoints": [
-        "https://cdn.crabnebula.app/update/fastrepl/hyprnote/{{target}}-{{arch}}/{{current_version}}"
+        "https://v.netis.com.cn:13001/notes_update/{{target}}-{{arch}}/{{current_version}}"
       ]
     }
   }

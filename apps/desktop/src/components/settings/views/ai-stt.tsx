@@ -114,7 +114,7 @@ export default function SttAI() {
       >
         <TabsList className="grid grid-cols-2 mb-6">
           <TabsTrigger value="default">
-            <Trans>Default</Trans>
+            <Trans>Local</Trans>
           </TabsTrigger>
           <TabsTrigger value="custom">
             <Trans>Netis</Trans>

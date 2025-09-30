@@ -146,12 +146,7 @@ export function SettingsButton() {
           >
             <Trans>Check Updates</Trans>
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={handleClickTalkToFounders}
-            className="cursor-pointer"
-          >
-            <Trans>Talk to Founders</Trans>
-          </DropdownMenuItem>
+          {/* Talk to Founders menu item removed for Netis deployment */}
           <DropdownMenuItem
             onClick={handleClickChangelog}
             className="cursor-pointer text-xs text-muted-foreground hover:text-foreground"
@@ -187,10 +182,10 @@ function DropdownHeader({
         {isPro ? <CastleIcon className="size-8 animate-pulse" /> : <ShieldIcon className="size-8 animate-pulse" />}
         <div>
           <div className="font-medium">
-            {isPro ? "Pro Plan" : "Free Plan"}
+            {isPro ? "Netis" : "Free Plan"}
           </div>
           <div className="text-xs text-white/80 mt-0.5">
-            {isPro ? "Full features" : "Basic features"}
+            {isPro ? "AI Consul" : "Basic features"}
           </div>
         </div>
       </div>

@@ -103,11 +103,11 @@ export default function General() {
     defaultValues: {
       autostart: false,
       displayLanguage: "en",
-      spokenLanguages: ["en"],
+      spokenLanguages: ["zh"],
       telemetryConsent: false,
-      jargons: "",
+      jargons: "BPC, NPM, Netis, 故障诊断, 端到端, 性能",
       saveRecordings: true,
-      summaryLanguage: "en",
+      summaryLanguage: "zh",
     },
   });
 
@@ -116,11 +116,11 @@ export default function General() {
       form.reset({
         autostart: config.data.general.autostart ?? false,
         displayLanguage: config.data.general.display_language ?? "en",
-        spokenLanguages: config.data.general.spoken_languages ?? ["en"],
+        spokenLanguages: config.data.general.spoken_languages ?? ["zh"],
         telemetryConsent: config.data.general.telemetry_consent ?? false,
-        jargons: (config.data.general.jargons ?? []).join(", "),
+        jargons: (config.data.general.jargons ?? ["BPC", "NPM", "Netis", "故障诊断", "端到端", "性能"]).join(", "),
         saveRecordings: config.data.general.save_recordings ?? true,
-        summaryLanguage: config.data.general.summary_language ?? "en",
+        summaryLanguage: config.data.general.summary_language ?? "zh",
       });
     }
   }, [config.data, form]);

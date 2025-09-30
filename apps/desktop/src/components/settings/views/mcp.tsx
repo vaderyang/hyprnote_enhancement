@@ -144,7 +144,7 @@ export default function MCP() {
           </span>
         </div>
         <p className="text-sm text-neutral-600 mb-4">
-          Connect MCP servers with AI chat (currently supports Claude Sonnet 4, gpt-4o and gpt-4.1)
+          Connect MCP servers with AI chat
         </p>
       </div>
 
