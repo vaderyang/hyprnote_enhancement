@@ -17,7 +17,7 @@
     }
   },
   "bundle": {
-    "publisher": "Fastrepl",
+    "publisher": "Netis",
     "active": true,
     "createUpdaterArtifacts": true,
     "targets": "all",

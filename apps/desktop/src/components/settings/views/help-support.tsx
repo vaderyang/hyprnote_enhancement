@@ -103,7 +103,7 @@ export default function HelpSupport() {
                   <Trans>Logs</Trans>
                 </div>
                 <div className="text-sm text-gray-500">
-                  <Trans>Got an error? Send your logs file to us at founders@hyprnote.com</Trans>
+                  <Trans>Got an error? Send your logs file to us at ai_embassy@netis.com</Trans>
                 </div>
               </div>
             </div>
