@@ -26,6 +26,7 @@ interface RightPanelContextType {
   pendingSelection: SelectionData | null;
   sendSelectionToChat: (selectionData: SelectionData) => void;
   clearPendingSelection: () => void;
+  userInitiatedExpand: () => void;
 }
 
 const RightPanelContext = createContext<RightPanelContextType | null>(null);
@@ -38,17 +39,25 @@ export function RightPanelProvider({
   const [isExpanded, setIsExpanded] = useState(true);
   const [currentView, setCurrentView] = useState<RightPanelView>("transcript");
   const [pendingSelection, setPendingSelection] = useState<SelectionData | null>(null);
+  const [wasUserExpanded, setWasUserExpanded] = useState(false);
   const previouslyFocusedElement = useRef<HTMLElement | null>(null);
   const chatInputRef = useRef<HTMLTextAreaElement>(null);
 
   const hidePanel = useCallback(() => {
-    setIsExpanded(false);
+    // Only auto-hide if it wasn't expanded by user after transcription started
+    if (!wasUserExpanded) {
+      setIsExpanded(false);
 
-    setTimeout(() => {
-      if (previouslyFocusedElement.current) {
-        previouslyFocusedElement.current.focus();
-      }
-    }, 0);
+      setTimeout(() => {
+        if (previouslyFocusedElement.current) {
+          previouslyFocusedElement.current.focus();
+        }
+      }, 0);
+    }
+  }, [wasUserExpanded]);
+
+  const userInitiatedExpand = useCallback(() => {
+    setWasUserExpanded(true);
   }, []);
 
   const switchView = useCallback((view: RightPanelView) => {
@@ -72,6 +81,7 @@ export function RightPanelProvider({
           previouslyFocusedElement.current = document.activeElement as HTMLElement;
 
           setIsExpanded(true);
+          setWasUserExpanded(true); // Mark as user-initiated expansion
 
           const targetView = view || currentView;
           if (targetView === "chat") {
@@ -169,6 +179,7 @@ export function RightPanelProvider({
         previouslyFocusedElement.current = document.activeElement as HTMLElement;
 
         setIsExpanded(true);
+        setWasUserExpanded(true); // Mark as user-initiated expansion
         setCurrentView("transcript");
       }
     },
@@ -197,6 +208,7 @@ export function RightPanelProvider({
         previouslyFocusedElement.current = document.activeElement as HTMLElement;
 
         setIsExpanded(true);
+        setWasUserExpanded(true); // Mark as user-initiated expansion
         setCurrentView("chat");
       }
     },
@@ -220,6 +232,7 @@ export function RightPanelProvider({
         pendingSelection,
         sendSelectionToChat,
         clearPendingSelection,
+        userInitiatedExpand,
       }}
     >
       {children}

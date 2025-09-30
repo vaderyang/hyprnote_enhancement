@@ -38,6 +38,7 @@ import { cn } from "@hypr/ui/lib/utils";
 import { useOngoingSession } from "@hypr/utils/contexts";
 import { SearchHeader } from "../components/search-header";
 import { useTranscript } from "../hooks/useTranscript";
+import { useRightPanel } from "@/contexts/right-panel";
 
 export function TranscriptView() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -48,6 +49,26 @@ export function TranscriptView() {
 
   const { words, partialWords, finalWords, isLive } = useTranscript(sessionId);
   const showEmptyMessage = sessionId && words.length <= 0 && !isLive;
+
+  const { hidePanel, currentView, userInitiatedExpand } = useRightPanel();
+  const wasLiveRef = useRef(false);
+  const autoCollapseEnabledRef = useRef(false);
+
+  // Auto-collapse when transcription completes
+  useEffect(() => {
+    if (currentView === "transcript") {
+      if (isLive && !wasLiveRef.current) {
+        // Transcription just started - enable auto-collapse for this session
+        wasLiveRef.current = true;
+        autoCollapseEnabledRef.current = true;
+      } else if (wasLiveRef.current && !isLive && autoCollapseEnabledRef.current) {
+        // Transcription just completed - auto collapse
+        wasLiveRef.current = false;
+        autoCollapseEnabledRef.current = false;
+        hidePanel();
+      }
+    }
+  }, [isLive, hidePanel, currentView]);
 
   if (!sessionId) {
     return null;
