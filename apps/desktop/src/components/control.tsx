@@ -39,17 +39,14 @@ export const ErrorComponent: ErrorRouteComponent = ({ error }) => {
     <div className="flex min-h-screen h-full w-full flex-col items-center justify-center gap-2 bg-neutral-200 p-6">
       <p className="text-xl font-semibold">Sorry, something went wrong.</p>
       <p>The error has been automatically reported to the team.</p>
-      <img src="/assets/sorry.png" alt="error" className="w-1/2" />
+      <img src="https://netis.com/wp-content/uploads/2025/02/logo.png" alt="error" className="w-1/2" />
 
       <div className="flex gap-2">
         <Link to="/app/new">
           <Button variant="ghost">Back to home</Button>
         </Link>
-        <Button variant="ghost" onClick={() => open("https://hyprnote.com/discord")}>
-          Join Discord
-        </Button>
-        <Button variant="ghost" onClick={() => open("https://github.com/fastrepl/hyprnote/issues")}>
-          Open Issue
+        <Button variant="ghost" onClick={() => open("mailto:ai_embassy@netis.com?subject=Hyprnote Error Report")}>
+          Report Issue via Email
         </Button>
       </div>
     </div>

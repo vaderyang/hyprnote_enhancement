@@ -70,20 +70,20 @@ export function SettingsButton() {
   const handleClickChangelog = async () => {
     setOpen(false);
     try {
-      await openURL("https://hyprnote.com/changelog");
+      await openURL("https://www.netis.com.cn/note/changelog");
     } catch (error) {
       console.error("Failed to open changelog:", error);
     }
   };
 
-  const handleClickTalkToFounders = async () => {
-    setOpen(false);
-    try {
-      await openURL("https://cal.com/team/hyprnote/welcome");
-    } catch (error) {
-      console.error("Failed to open talk to founders:", error);
-    }
-  };
+  // const handleClickTalkToFounders = async () => {
+  //   setOpen(false);
+  //   try {
+  //     await openURL("https://cal.com/team/hyprnote/welcome");
+  //   } catch (error) {
+  //     console.error("Failed to open talk to founders:", error);
+  //   }
+  // };
 
   const handleCheckUpdates = async () => {
     setOpen(false);
