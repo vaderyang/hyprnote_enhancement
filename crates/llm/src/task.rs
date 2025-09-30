@@ -24,15 +24,37 @@ pub async fn generate_title(
         None
     };
 
+    // Render the prompts
+    let system_prompt = render(Template::CreateTitleSystem, &ctx).unwrap();
+    let user_prompt = render(Template::CreateTitleUser, &ctx).unwrap();
+
+    // Log the complete prompts being sent to LLM
+    let separator = "=".repeat(80);
+    println!("\n{}", separator);
+    println!("🎯 TITLE GENERATION - Sending to LLM");
+    println!("{}", separator);
+    println!("📋 Language: {}", summary_language);
+    println!("📏 Grammar constraint: {}", if grammar.is_some() { "enabled" } else { "disabled" });
+    println!("🔢 Max tokens: 30");
+    println!("\n{}", separator);
+    println!("💬 SYSTEM PROMPT:");
+    println!("{}", separator);
+    println!("{}", system_prompt);
+    println!("\n{}", separator);
+    println!("💬 USER PROMPT:");
+    println!("{}", separator);
+    println!("{}", user_prompt);
+    println!("{}\n", separator);
+
     let stream = model.generate_stream(hypr_llama::LlamaRequest {
         messages: vec![
             hypr_llama::LlamaMessage {
                 role: "system".into(),
-                content: render(Template::CreateTitleSystem, &ctx).unwrap(),
+                content: system_prompt,
             },
             hypr_llama::LlamaMessage {
                 role: "user".into(),
-                content: render(Template::CreateTitleUser, &ctx).unwrap(),
+                content: user_prompt,
             },
         ],
         max_tokens: Some(30),
@@ -50,6 +72,14 @@ pub async fn generate_title(
         })
         .collect::<Vec<_>>();
     let text = items.join("");
+
+    // Log the generated title
+    let separator = "=".repeat(80);
+    println!("{}", separator);
+    println!("✅ TITLE GENERATED:");
+    println!("{}", separator);
+    println!("{}", text);
+    println!("{}\n", separator);
 
     Ok(text)
 }
