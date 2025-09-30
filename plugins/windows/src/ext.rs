@@ -255,25 +255,7 @@ impl HyprWindow {
         #[cfg(target_os = "macos")]
         let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
 
-        if self == &Self::Main {
-            use tauri_plugin_analytics::{AnalyticsPayload, AnalyticsPluginExt};
-            use tauri_plugin_auth::{AuthPluginExt, StoreKey};
-
-            let user_id = app
-                .get_from_store(StoreKey::UserId)?
-                .unwrap_or("UNKNOWN".into());
-
-            let e = AnalyticsPayload::for_user(user_id)
-                .event("show_main_window")
-                .build();
-
-            let app_clone = app.clone();
-            tauri::async_runtime::spawn(async move {
-                if let Err(e) = app_clone.event(e).await {
-                    tracing::error!("failed_to_send_analytics: {:?}", e);
-                }
-            });
-        }
+        // Analytics removed
 
         if let Some(window) = self.get(app) {
             window.show()?;
@@ -530,28 +512,7 @@ impl WindowsPluginExt<tauri::Wry> for AppHandle<tauri::Wry> {
                 window_state.id.clone()
             };
 
-            let user_id = {
-                use tauri_plugin_auth::{AuthPluginExt, StoreKey};
-
-                self.get_from_store(StoreKey::UserId)?
-                    .unwrap_or("UNKNOWN".into())
-            };
-
-            {
-                use tauri_plugin_analytics::{AnalyticsPayload, AnalyticsPluginExt};
-
-                let e = AnalyticsPayload::for_user(user_id)
-                    .event(event_name)
-                    .with("session_id", session_id)
-                    .build();
-
-                let app_clone = self.clone();
-                tauri::async_runtime::spawn(async move {
-                    if let Err(e) = app_clone.event(e).await {
-                        tracing::error!("failed_to_send_analytics: {:?}", e);
-                    }
-                });
-            }
+            // Analytics removed
         }
 
         Ok(())

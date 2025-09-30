@@ -14,17 +14,7 @@ pub async fn main() {
     tauri::async_runtime::set(tokio::runtime::Handle::current());
 
     let sentry_client = sentry::init((
-        {
-            #[cfg(not(debug_assertions))]
-            {
-                env!("SENTRY_DSN")
-            }
-
-            #[cfg(debug_assertions)]
-            {
-                option_env!("SENTRY_DSN").unwrap_or_default()
-            }
-        },
+        option_env!("SENTRY_DSN").unwrap_or_default(),
         sentry::ClientOptions {
             release: sentry::release_name!(),
             traces_sample_rate: 1.0,
@@ -85,7 +75,6 @@ pub async fn main() {
         .plugin(tauri_plugin_task::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_machine_uid::init())
-        .plugin(tauri_plugin_analytics::init())
         .plugin(tauri_plugin_tray::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_windows::init())
@@ -122,30 +111,6 @@ pub async fn main() {
             Some(vec!["--background"]),
         ));
 
-    {
-        // These are not secrets. In prod, we set different values in the environment. (See .github/workflows/desktop_cd.yml)
-        let (keygen_account_id, keygen_verify_key) = {
-            #[cfg(not(debug_assertions))]
-            {
-                (env!("KEYGEN_ACCOUNT_ID"), env!("KEYGEN_VERIFY_KEY"))
-            }
-
-            #[cfg(debug_assertions)]
-            {
-                (
-                    option_env!("KEYGEN_ACCOUNT_ID")
-                        .unwrap_or("76dfe152-397c-4689-9c5e-3669cefa34b9"),
-                    option_env!("KEYGEN_VERIFY_KEY").unwrap_or(
-                        "13f18c98b8c1e5539d92df4aad2d51f4d203d5aead296215df7c3d6376b78b13",
-                    ),
-                )
-            }
-        };
-
-        builder = builder.plugin(
-            tauri_plugin_keygen::Builder::new(keygen_account_id, keygen_verify_key).build(),
-        );
-    }
 
     #[cfg(target_os = "macos")]
     {

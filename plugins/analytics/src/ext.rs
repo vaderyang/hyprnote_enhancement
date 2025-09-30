@@ -67,7 +67,8 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> crate::AnalyticsPluginExt<R> for T
 
     fn is_disabled(&self) -> Result<bool, crate::Error> {
         let store = self.scoped_store(crate::PLUGIN_NAME)?;
-        let v = store.get(crate::StoreKey::Disabled)?.unwrap_or(false);
+        // Default to disabled (true) to prevent analytics from being sent
+        let v = store.get(crate::StoreKey::Disabled)?.unwrap_or(true);
         Ok(v)
     }
 

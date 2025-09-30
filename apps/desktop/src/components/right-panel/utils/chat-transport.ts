@@ -1,6 +1,5 @@
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as mcpCommands } from "@hypr/plugin-mcp";
-import { fetch as tauriFetch } from "@hypr/utils";
 import type { UIMessage } from "@hypr/utils/ai";
 import {
   type ChatRequestOptions,
@@ -14,13 +13,10 @@ import {
   type UIMessageChunk,
 } from "@hypr/utils/ai";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
-import { getLicenseKey } from "tauri-plugin-keygen-api";
 import { z } from "zod";
 
 // Import the custom tools
 import { prepareMessagesForAI } from "./chat-utils";
-import { buildVercelToolsFromMcp } from "./mcp-http-wrapper";
 import { createEditEnhancedNoteTool } from "./tools/edit_enhanced_note";
 import { createSearchSessionDateRangeTool } from "./tools/search_session_date_range";
 import { createSearchSessionTool } from "./tools/search_session_multi_keywords";
@@ -78,30 +74,7 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
     const enabledServers = mcpServers.filter((server) => server.enabled);
 
     // load Hyprnote cloud MCP if applicable
-    if (apiBase?.includes("pro.hyprnote.com") && this.options.getLicense?.data?.valid) {
-      try {
-        const licenseKey = await getLicenseKey();
-        const transport = new StreamableHTTPClientTransport(
-          new URL("https://pro.hyprnote.com/mcp"),
-          {
-            fetch: tauriFetch,
-            requestInit: {
-              headers: {
-                "x-hyprnote-license-key": licenseKey || "",
-              },
-            },
-          },
-        );
-        this.hyprMcpClient = new Client({
-          name: "hyprmcp",
-          version: "0.1.0",
-        });
-        await this.hyprMcpClient.connect(transport);
-        hyprMcpTools = await buildVercelToolsFromMcp(this.hyprMcpClient);
-      } catch (error) {
-        console.error("Error creating hyprmcp client:", error);
-      }
-    }
+    // Disabled: license checking removed
 
     for (const server of enabledServers) {
       try {

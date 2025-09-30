@@ -17,6 +17,7 @@ url = { workspace = true }
 
 futures-util = { workspace = true }
 tracing = { workspace = true }
+chrono = { workspace = true }
 
 [dev-dependencies]
 hypr-data = { workspace = true }
