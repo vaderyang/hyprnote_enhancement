@@ -21,6 +21,7 @@ use deepgram::{
 };
 
 use owhisper_interface::{ListenInputChunk, ListenOutputChunk, ListenParams, Word2};
+use text_utils::segment_text;
 
 #[derive(Clone)]
 pub struct TranscribeService {
@@ -130,9 +131,9 @@ impl TranscribeService {
                                             });
                                         }
                                     } else if !first_alt.transcript.is_empty() {
-                                        for text in first_alt.transcript.split_whitespace() {
+                                        for text in segment_text(&first_alt.transcript) {
                                             words.push(Word2 {
-                                                text: text.to_string(),
+                                                text,
                                                 speaker: None,
                                                 confidence: Some(first_alt.confidence as f32),
                                                 start_ms: None,

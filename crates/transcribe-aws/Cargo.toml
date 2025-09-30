@@ -9,6 +9,7 @@ hypr-data = { workspace = true }
 [dependencies]
 owhisper-config = { workspace = true }
 owhisper-interface = { workspace = true }
+text-utils = { path = "../text-utils" }
 
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }

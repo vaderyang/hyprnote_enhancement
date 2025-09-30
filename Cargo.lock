@@ -15376,6 +15376,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "text-utils"
+version = "0.1.0"
+dependencies = [
+ "unicode-segmentation",
+]
+
+[[package]]
 name = "thiserror"
 version = "1.0.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -16094,6 +16101,7 @@ dependencies = [
  "owhisper-interface",
  "serde",
  "serde_json",
+ "text-utils",
  "thiserror 2.0.16",
  "tokio",
  "tokio-stream",
@@ -16140,6 +16148,7 @@ dependencies = [
  "rodio",
  "serde",
  "serde_json",
+ "text-utils",
  "thiserror 2.0.16",
  "tokio",
  "tokio-stream",
@@ -16193,6 +16202,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_qs 1.0.0-rc.3",
+ "text-utils",
  "thiserror 2.0.16",
  "tokio",
  "tokio-stream",
@@ -16238,6 +16248,7 @@ dependencies = [
  "rodio",
  "serde_json",
  "serde_qs 1.0.0-rc.3",
+ "text-utils",
  "thiserror 2.0.16",
  "tokio",
  "tokio-util",

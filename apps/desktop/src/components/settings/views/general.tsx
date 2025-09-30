@@ -236,8 +236,7 @@ export default function General() {
             )}
           />
 
-          {
-            /*
+          {/* Share usage data setting (HIDDEN)
           <FormField
             control={form.control}
             name="telemetryConsent"
@@ -267,8 +266,7 @@ export default function General() {
               </FormItem>
             )}
           />
-          */
-          }
+          */}
 
           <FormField
             control={form.control}

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { openPath } from "@tauri-apps/plugin-opener";
-import { arch, platform } from "@tauri-apps/plugin-os";
+// arch, platform imports removed - Advanced Models section hidden for Netis deployment
 import { DownloadIcon, FolderIcon, InfoIcon } from "lucide-react";
 import { useEffect, useMemo } from "react";
 
@@ -57,7 +57,8 @@ export function STTViewLocal({
   setProviderToLocal,
 }: STTViewProps) {
   const { userId } = useHypr();
-  const amAvailable = useMemo(() => platform() === "macos" && arch() === "aarch64", []);
+  // Advanced models hidden for Netis deployment
+  // const amAvailable = useMemo(() => platform() === "macos" && arch() === "aarch64", []);
 
   const servers = useQuery({
     queryKey: ["local-stt-servers"],
@@ -144,16 +145,10 @@ export function STTViewLocal({
         userId={userId}
       />
 
-      {
-        /*
-      {/* Divider - only show if pro models available (HIDDEN) */
-        /*
+      {/* Advanced Models Section (HIDDEN)
       {amAvailable && (
         <>
           <hr className="border-gray-200" />
-
-          {/* Pro Models Section */
-          /*
           <ProModelsSection
             status={servers.data?.external}
             selectedSTTModel={selectedSTTModel}
@@ -166,8 +161,7 @@ export function STTViewLocal({
           />
         </>
       )}
-      */
-      }
+      */}
     </div>
   );
 }
@@ -223,77 +217,9 @@ function BasicModelsSection({
 }
 
 // ============================================
-// PRO MODELS SECTION
+// PRO MODELS SECTION - HIDDEN FOR NETIS DEPLOYMENT
 // ============================================
-function ProModelsSection({
-  status,
-  selectedSTTModel,
-  setSelectedSTTModel,
-  downloadingModels,
-  handleModelDownload,
-  provider,
-  setProviderToLocal,
-  userId,
-}: Omit<ModelSectionProps, "modelsToShow">) {
-  // getLicense removed - no longer needed for license checks
-
-  const handleShowFileLocation = async () => {
-    const path = await localSttCommands.modelsDir();
-    openPath(path);
-  };
-
-  const proModels = useQuery({
-    queryKey: ["pro-models"],
-    queryFn: async () => {
-      const models = await localSttCommands.listSupportedModels().then((models) =>
-        models.filter((model) => ["am-parakeet-v2", "am-parakeet-v3"].includes(model.key))
-      );
-
-      const downloaded = await Promise.all(
-        models.map(({ key }) => localSttCommands.isModelDownloaded(key)),
-      );
-
-      return models.map((model, index) => ({
-        name: model.display_name,
-        key: model.key,
-        downloaded: downloaded[index],
-        size: `${(model.size_bytes / 1024 / 1024).toFixed(0)} MB`,
-        fileName: "",
-      }));
-    },
-    refetchInterval: REFETCH_INTERVALS.downloadStatus,
-  });
-
-  return (
-    <section className="max-w-2xl">
-      <SectionHeader
-        title="Advanced Models"
-        description="Resource and latency optimized models available to all users."
-        status={status}
-        docsUrl="https://docs.hyprnote.com/models"
-      />
-
-      {/* Models List */}
-      <div className="space-y-2 mt-4">
-        {proModels.data?.map((model) => (
-          <ModelEntry
-            key={model.key}
-            disabled={false}
-            model={model}
-            selectedSTTModel={selectedSTTModel}
-            setSelectedSTTModel={setSelectedSTTModel}
-            downloadingModels={downloadingModels}
-            handleModelDownload={handleModelDownload}
-            handleShowFileLocation={handleShowFileLocation}
-            provider={provider}
-            setProviderToLocal={setProviderToLocal}
-            userId={userId}
-          />
-        ))}
-      </div>
-    </section>
-  );
-}
+// ProModelsSection function removed
 
 // ============================================
 // SHARED COMPONENTS

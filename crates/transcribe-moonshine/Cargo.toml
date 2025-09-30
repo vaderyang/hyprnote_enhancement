@@ -17,6 +17,7 @@ owhisper-interface = { workspace = true }
 hypr-audio-utils = { workspace = true }
 hypr-vad = { workspace = true }
 hypr-ws-utils = { workspace = true }
+text-utils = { path = "../text-utils" }
 
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }

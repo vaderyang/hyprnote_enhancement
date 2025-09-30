@@ -20,6 +20,7 @@ use tower::Service;
 use hypr_vad::VadExt;
 use hypr_ws_utils::{ConnectionGuard, ConnectionManager};
 use owhisper_interface::{Alternatives, Channel, ListenParams, Metadata, StreamResponse, Word};
+use text_utils::segment_text;
 
 use crate::GlobalTimer;
 
@@ -255,11 +256,10 @@ async fn process_transcription_stream(
                     _ => (None, vec![0, 1]),
                 };
 
-                let words: Vec<Word> = text
-                    .split_whitespace()
-                    .filter(|w| !w.is_empty())
+                let words: Vec<Word> = segment_text(&text)
+                    .into_iter()
                     .map(|w| Word {
-                        word: w.trim().to_string(),
+                        word: w,
                         start: adjusted_start_f64,
                         end: adjusted_end_f64,
                         confidence,

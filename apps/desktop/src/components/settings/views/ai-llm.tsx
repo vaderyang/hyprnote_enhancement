@@ -23,13 +23,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@hypr/ui/components/ui/form";
-import { Tabs, TabsList, TabsTrigger } from "@hypr/ui/components/ui/tabs";
+// Tabs import removed - tabs hidden for Netis deployment
 import { Tooltip, TooltipContent, TooltipTrigger } from "@hypr/ui/components/ui/tooltip";
 import { cn } from "@hypr/ui/lib/utils";
-import { showLlmModelDownloadToast } from "../../toast/shared";
+// showLlmModelDownloadToast removed - local models hidden for Netis deployment
 
 import { LLMCustomView } from "../components/ai/llm-custom-view";
-import { LLMLocalView } from "../components/ai/llm-local-view";
+// LLMLocalView import removed - local view hidden for Netis deployment
 import {
   ConfigureEndpointConfig,
   CustomFormValues,
@@ -113,10 +113,12 @@ const specificityLevels = {
 
 export default function LlmAI() {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"default" | "custom">("default");
+  // activeTab state removed - tabs hidden for Netis deployment
+  // const [activeTab, setActiveTab] = useState<"default" | "custom">("default");
 
   const [selectedLLMModel, setSelectedLLMModel] = useState("HyprLLM");
-  const [downloadingModels, setDownloadingModels] = useState<Set<string>>(new Set());
+  // downloadingModels state removed - local models hidden for Netis deployment
+  // const [downloadingModels, setDownloadingModels] = useState<Set<string>>(new Set());
   const [llmModelsState, setLlmModels] = useState<LLMModel[]>([]);
 
   useEffect(() => {
@@ -138,6 +140,8 @@ export default function LlmAI() {
 
   const { userId } = useHypr();
 
+  // handleLlmModelDownload function removed - local models hidden for Netis deployment
+  /*
   const handleLlmModelDownload = async (modelKey: string) => {
     setDownloadingModels((prev) => new Set([...prev, modelKey]));
 
@@ -158,9 +162,10 @@ export default function LlmAI() {
       setHyprCloudEnabledMutation.mutate(false);
     }, queryClient);
   };
+  */
 
   const handleModelDownload = async (modelKey: string) => {
-    await handleLlmModelDownload(modelKey);
+    // await handleLlmModelDownload(modelKey);
   };
 
   const customLLMEnabled = useQuery({
@@ -621,7 +626,7 @@ export default function LlmAI() {
     selectedLLMModel,
     setSelectedLLMModel,
     setCustomLLMEnabledMutation,
-    downloadingModels,
+    downloadingModels: new Set<string>(), // Empty set - local models hidden for Netis deployment
     llmModelsState,
     handleModelDownload,
     configureCustomEndpoint,
@@ -644,6 +649,8 @@ export default function LlmAI() {
     isLocalEndpoint,
   };
 
+  // useEffect for setActiveTab removed - tabs hidden for Netis deployment
+  /*
   useEffect(() => {
     // Set initial tab based on LLM configuration
     if (customLLMEnabled.data !== undefined && hyprCloudEnabled.data !== undefined) {
@@ -655,11 +662,11 @@ export default function LlmAI() {
       }
     }
   }, [customLLMEnabled.data, hyprCloudEnabled.data]);
+  */
 
   return (
     <div className="space-y-8">
-      {
-        /*
+      {/* Default/Custom tabs (HIDDEN)
       <Tabs
         value={activeTab}
         onValueChange={(value) => setActiveTab(value as "default" | "custom")}
@@ -674,14 +681,11 @@ export default function LlmAI() {
           </TabsTrigger>
         </TabsList>
       </Tabs>
-      */
-      }
+      */}
 
-      {
-        /*
+      {/* Local LLM View (HIDDEN)
       {activeTab === "default" && <LLMLocalView {...localLlmProps} />}
-      */
-      }
+      */}
       {(
         <div className="space-y-8">
           <LLMCustomView {...customEndpointProps} />
