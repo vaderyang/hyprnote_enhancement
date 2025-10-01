@@ -243,7 +243,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     // Configure Netis STT service (no local downloads needed)
     await localSttCommands.setProvider("Custom");
     await localSttCommands.setCustomBaseUrl("http://v.netis.com.cn:13000");
-    await localSttCommands.setCustomModel("netis");
+    await localSttCommands.setCustomModel("nova-2");
 
     // Configure Netis LLM service with correct API settings
     await connectorCommands.setCustomLlmEnabled(true);
