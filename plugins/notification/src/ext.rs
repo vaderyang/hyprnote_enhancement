@@ -217,10 +217,8 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
 
     fn start_notification_analytics(&self, user_id: String) -> Result<(), Error> {
         use hypr_notification::NotificationMutation;
-        use tauri_plugin_analytics::{AnalyticsPayload, AnalyticsPluginExt};
 
         let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<NotificationMutation>();
-        let app_handle = self.app_handle().clone();
 
         let confirm_tx = tx.clone();
         hypr_notification::setup_notification_confirm_handler(move |_id| {
@@ -236,22 +234,10 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> NotificationPluginExt<R> for T {
             while let Some(event) = rx.recv().await {
                 match event {
                     NotificationMutation::Confirm => {
-                        let _ = app_handle
-                            .event(
-                                AnalyticsPayload::for_user(&user_id)
-                                    .event("notification_confirm")
-                                    .build(),
-                            )
-                            .await;
+                        tracing::info!(user_id = %user_id, "notification_confirm");
                     }
                     NotificationMutation::Dismiss => {
-                        let _ = app_handle
-                            .event(
-                                AnalyticsPayload::for_user(&user_id)
-                                    .event("notification_dismiss")
-                                    .build(),
-                            )
-                            .await;
+                        tracing::info!(user_id = %user_id, "notification_dismiss");
                     }
                 }
             }

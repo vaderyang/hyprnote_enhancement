@@ -1,4 +1,4 @@
-import { showProGateModal } from "@/components/pro-gate-modal/service";
+// showProGateModal import removed - no longer needed
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { open } from "@tauri-apps/plugin-shell";
@@ -6,7 +6,7 @@ import { ArrowLeftIcon, CheckIcon, InfoIcon, Loader2Icon, PlusIcon } from "lucid
 import { useEffect, useState } from "react";
 
 import { useHypr } from "@/contexts";
-import { useLicense } from "@/hooks/use-license";
+// useLicense import removed - no longer needed
 import { TemplateService } from "@/utils/template-service";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { type Template } from "@hypr/plugin-db";
@@ -20,7 +20,7 @@ type ViewState = "list" | "editor" | "new";
 
 export default function TemplatesView() {
   const { userId } = useHypr();
-  const { getLicense } = useLicense();
+  // getLicense removed - no longer needed for license checks
 
   const [viewState, setViewState] = useState<ViewState>("list");
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
@@ -110,17 +110,7 @@ export default function TemplatesView() {
   };
 
   const handleNewTemplate = async () => {
-    if (!getLicense.data?.valid) {
-      if (customTemplates.length > 1) {
-        analyticsCommands.event({
-          event: "pro_license_required_template",
-          distinct_id: userId,
-        });
-
-        await showProGateModal("template");
-        return;
-      }
-    }
+    // License limit removed - all users can create unlimited custom templates
 
     analyticsCommands.event({
       event: "template_created",
@@ -199,14 +189,7 @@ export default function TemplatesView() {
 
   const handleDuplicateTemplate = async (template: Template) => {
     try {
-      if (!getLicense.data?.valid) {
-        analyticsCommands.event({
-          event: "pro_license_required_template",
-          distinct_id: userId,
-        });
-        await showProGateModal("template_duplicate");
-        return;
-      }
+      // License limit removed - all users can duplicate templates
 
       const emojiMatch = template.title?.match(/^(\p{Emoji})\s*/u);
       const originalEmoji = emojiMatch ? emojiMatch[1] : "📄";

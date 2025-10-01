@@ -2,4 +2,20 @@
 {{ enhanced_note }}
 </note>
 
-Now, give me SUPER CONCISE title for above note. Only about the topic of the meeting.
+Generate a concise title that describes the PURPOSE or MAIN TOPIC of this meeting in {{ config.general.summary_language | language }}.
+
+GOOD examples (state what the meeting is about):
+{% if config.general.summary_language == "zh" -%}
+- "公章审批和告警系统生命周期管理"
+- "关于标题和告警的语音测试"
+- "产品路线图讨论"
+- "周度产品更新会议"
+- "第一季度预算规划会议"
+{%- else -%}
+- "Weekly Team Sync"
+- "Q4 Budget Planning"
+- "Product Roadmap Discussion"
+- "Customer Feedback Review"
+{%- endif %}
+
+Output ONLY the title text - no quotes, no symbols, no punctuation.

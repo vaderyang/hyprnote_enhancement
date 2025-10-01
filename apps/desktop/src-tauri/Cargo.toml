@@ -30,7 +30,6 @@ hypr-host = { workspace = true }
 hypr-turso = { workspace = true }
 hypr-whisper-local-model = { workspace = true }
 
-tauri-plugin-analytics = { workspace = true }
 tauri-plugin-auth = { workspace = true }
 tauri-plugin-connector = { workspace = true }
 tauri-plugin-db = { workspace = true }
@@ -62,7 +61,6 @@ tauri-plugin-dialog = { workspace = true }
 tauri-plugin-fs = { workspace = true, features = ["watch"] }
 tauri-plugin-global-shortcut = "2.3"
 tauri-plugin-http = { workspace = true, features = ["tracing", "unsafe-headers"] }
-tauri-plugin-keygen = { workspace = true }
 tauri-plugin-os = "2.3"
 tauri-plugin-prevent-default = { version = "1.2", features = ["unstable-windows"] }
 tauri-plugin-process = "2.3"

@@ -93,12 +93,12 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
             let api_key = {
                 #[cfg(not(debug_assertions))]
                 {
-                    Some(env!("AM_API_KEY").to_string())
+                    Some(option_env!("AM_API_KEY").unwrap_or("sk-none-am").to_string())
                 }
 
                 #[cfg(debug_assertions)]
                 {
-                    option_env!("AM_API_KEY").map(|s| s.to_string())
+                    Some(option_env!("AM_API_KEY").unwrap_or("sk-none-am").to_string())
                 }
             };
 

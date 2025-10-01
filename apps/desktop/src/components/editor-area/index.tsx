@@ -9,11 +9,11 @@ import { useHypr } from "@/contexts";
 import { extractTextFromHtml } from "@/utils/parse";
 import { autoTagGeneration } from "@/utils/tag-generation";
 import { TemplateService } from "@/utils/template-service";
+import { countWordsFromWordArray } from "@hypr/utils";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { events as localLlmEvents } from "@hypr/plugin-local-llm";
-import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { commands as templateCommands, type Grammar } from "@hypr/plugin-template";
 import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
@@ -21,7 +21,7 @@ import Renderer from "@hypr/tiptap/renderer";
 import { extractHashtags } from "@hypr/tiptap/shared";
 import { toast } from "@hypr/ui/components/ui/toast";
 import { cn } from "@hypr/ui/lib/utils";
-import { localProviderName, modelProvider, smoothStream, streamText } from "@hypr/utils/ai";
+import { generateText, localProviderName, modelProvider, smoothStream, streamText } from "@hypr/utils/ai";
 import { useOngoingSession, useSession, useSessions } from "@hypr/utils/contexts";
 import { globalEditorRef } from "../../shared/editor-ref";
 import { enhanceFailedToast } from "../toast/shared";
@@ -70,15 +70,50 @@ async function generateTitleDirect(
   targetSessionId: string,
   sessions: Record<string, any>,
   queryClient: QueryClient,
+  onboardingSessionId: string,
 ) {
-  const title = await localLlmCommands.generateTitle({
-    enhanced_note: enhancedContent,
-  });
+  try {
+    const config = await dbCommands.getConfig();
+    // Extract plain text from HTML for cleaner title generation
+    const plainTextContent = extractTextFromHtml(enhancedContent);
 
-  const session = await dbCommands.getSession({ id: targetSessionId });
-  if (!session?.title && sessions[targetSessionId]?.getState) {
-    const cleanedTitle = title.replace(/^["']|["']$/g, "").trim();
-    sessions[targetSessionId].getState().updateTitle(cleanedTitle);
+    // Render the title generation prompts using the same template system as summary
+    const systemPrompt = await templateCommands.render("create_title.system", {
+      config,
+    });
+    const userPrompt = await templateCommands.render("create_title.user", {
+      config,
+      enhanced_note: plainTextContent,
+    });
+
+    console.log("🎯 TITLE GENERATION - Using same model as summary");
+    console.log("📋 System Prompt:", systemPrompt);
+    console.log("📋 User Prompt:", userPrompt.substring(0, 200) + "...");
+
+    // Use the same model provider as summary generation
+    const provider = await modelProvider();
+    const model = targetSessionId === onboardingSessionId
+      ? provider.languageModel("onboardingModel")
+      : provider.languageModel("defaultModel");
+
+    // Generate title with the same model as summary
+    const { text } = await generateText({
+      model,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+    });
+
+    console.log("✅ Generated title:", text);
+
+    const session = await dbCommands.getSession({ id: targetSessionId });
+    if (!session?.title && sessions[targetSessionId]?.getState) {
+      const cleanedTitle = text.replace(/^["']|["']$/g, "").trim();
+      sessions[targetSessionId].getState().updateTitle(cleanedTitle);
+    }
+  } catch (error) {
+    console.error("❌ Title generation failed:", error);
   }
 
   // check and run auto tag generation if the session has less than 2 tags
@@ -168,7 +203,10 @@ export default function EditorArea({
   });
 
   const preMeetingNote = useSession(sessionId, (s) => s.session.pre_meeting_memo_html) ?? "";
-  const hasTranscriptWords = useSession(sessionId, (s) => s.session.words.length > (import.meta.env.DEV ? 5 : 100));
+  const hasTranscriptWords = useSession(sessionId, (s) => {
+    const wordCount = countWordsFromWordArray(s.session.words);
+    return wordCount > (import.meta.env.DEV ? 5 : 100);
+  });
 
   const llmConnectionQuery = useQuery({
     queryKey: ["llm-connection"],
@@ -185,7 +223,7 @@ export default function EditorArea({
     isLocalLlm: llmConnectionQuery.data?.type === "HyprLocal",
     onSuccess: (content) => {
       if (hasTranscriptWords) {
-        generateTitleDirect(content, sessionId, sessionsStore, queryClient).catch(console.error);
+        generateTitleDirect(content, sessionId, sessionsStore, queryClient, onboardingSessionId).catch(console.error);
       }
 
       if (sessionId !== onboardingSessionId) {
@@ -475,11 +513,12 @@ export function useEnhanceMutation({
       }
 
       const wordsThreshold = import.meta.env.DEV ? 5 : 100;
-      if (!words.length || words.length < wordsThreshold) {
+      const actualWordCount = countWordsFromWordArray(words);
+      if (!words.length || actualWordCount < wordsThreshold) {
         toast({
           id: "short-timeline",
           title: "Recording too short",
-          content: `We need at least ${wordsThreshold} words to enhance your note.`,
+          content: `We need at least ${wordsThreshold} words to enhance your note. Found ${actualWordCount} words.`,
           dismissible: true,
           duration: 5000,
         });

@@ -13,17 +13,7 @@ pub trait AppExt<R: tauri::Runtime> {
 
 impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
     fn sentry_dsn(&self) -> String {
-        {
-            #[cfg(not(debug_assertions))]
-            {
-                env!("SENTRY_DSN").to_string()
-            }
-
-            #[cfg(debug_assertions)]
-            {
-                option_env!("SENTRY_DSN").unwrap_or_default().to_string()
-            }
-        }
+        option_env!("SENTRY_DSN").unwrap_or_default().to_string()
     }
 
     #[tracing::instrument(skip_all)]
@@ -79,17 +69,8 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> AppExt<R> for T {
 
         self.db_attach(db).await.unwrap();
 
-        if let Ok(true) = self.db_ensure_user(&user_id).await {
-            use tauri_plugin_analytics::{AnalyticsPayload, AnalyticsPluginExt};
-
-            let e = AnalyticsPayload::for_user(&user_id)
-                .event("user_created")
-                .build();
-
-            if let Err(e) = self.event(e).await {
-                tracing::error!("failed_to_send_analytics: {}", e);
-            }
-        }
+        // Analytics removed
+        let _ = self.db_ensure_user(&user_id).await;
 
         {
             let state = self.state::<tauri_plugin_db::ManagedState>();

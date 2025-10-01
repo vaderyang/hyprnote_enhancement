@@ -34,17 +34,17 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
             let api_key = {
                 #[cfg(not(debug_assertions))]
                 {
-                    env!("POSTHOG_API_KEY")
+                    option_env!("POSTHOG_API_KEY").unwrap_or("sk-none-posthog")
                 }
 
                 #[cfg(debug_assertions)]
                 {
-                    option_env!("POSTHOG_API_KEY").unwrap_or_default()
+                    option_env!("POSTHOG_API_KEY").unwrap_or("sk-none-posthog")
                 }
             };
 
             let client = hypr_analytics::AnalyticsClient::new(api_key);
-            assert!(app.manage(client));
+            app.manage(client);
             Ok(())
         })
         .build()

@@ -1,47 +1,30 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
-import * as keygen from "tauri-plugin-keygen-api";
 
 const LICENSE_QUERY_KEY = ["license"] as const;
-const LICENSE_TTL_SECONDS = 60 * 60 * 24 * 7;
-const REFRESH_THRESHOLD_DAYS = 3;
 
+// License system disabled - returning stub implementations
 export function useLicense() {
   const queryClient = useQueryClient();
 
   const getLicense = useQuery({
     queryKey: LICENSE_QUERY_KEY,
     queryFn: async () => {
-      const license = await keygen.getLicense();
-      if (license?.valid) {
-        return license;
-      }
-      return null;
+      // License checking disabled
+      return { valid: true };
     },
     gcTime: 5 * 60 * 1000,
     staleTime: 2 * 60 * 1000,
-    refetchIntervalInBackground: true,
+    refetchIntervalInBackground: false,
   });
 
   const refreshLicense = useMutation({
     mutationFn: async () => {
-      const cachedKey = await keygen.getLicenseKey();
-      if (!cachedKey) {
-        throw new Error("no_license_key_found");
-      }
-
-      const license = await keygen.validateCheckoutKey({
-        key: cachedKey,
-        entitlements: [],
-        ttlSeconds: LICENSE_TTL_SECONDS,
-        ttlForever: false,
-      });
-
-      return license;
+      // License checking disabled
+      return { valid: true };
     },
     onError: (e) => {
       console.error(e);
-      queryClient.setQueryData(LICENSE_QUERY_KEY, null);
     },
     onSuccess: (license) => {
       queryClient.setQueryData(LICENSE_QUERY_KEY, license);
@@ -49,31 +32,14 @@ export function useLicense() {
   });
 
   const getLicenseStatus = useCallback(() => {
-    const license = getLicense.data;
-    if (!license?.valid || !license.expiry) {
-      return { needsRefresh: false, isValid: false };
-    }
-
-    const now = Date.now();
-    const expiryTime = new Date(license.expiry).getTime();
-    const msUntilExpiry = expiryTime - now;
-
-    return {
-      needsRefresh: msUntilExpiry > 0
-        && msUntilExpiry <= REFRESH_THRESHOLD_DAYS * 24 * 60 * 60 * 1000,
-      isValid: msUntilExpiry > 0,
-    };
-  }, [getLicense.data]);
+    // License checking disabled - always valid
+    return { needsRefresh: false, isValid: true };
+  }, []);
 
   const activateLicense = useMutation({
-    mutationFn: async (key: string) => {
-      const license = await keygen.validateCheckoutKey({
-        key,
-        entitlements: [],
-        ttlSeconds: LICENSE_TTL_SECONDS,
-        ttlForever: false,
-      });
-      return license;
+    mutationFn: async (_key: string) => {
+      // License checking disabled
+      return { valid: true };
     },
     onError: console.error,
     onSuccess: () => {
@@ -83,10 +49,7 @@ export function useLicense() {
 
   const deactivateLicense = useMutation({
     mutationFn: async () => {
-      await Promise.all([
-        keygen.resetLicense(),
-        keygen.resetLicenseKey(),
-      ]);
+      // License checking disabled
       return null;
     },
     onError: console.error,

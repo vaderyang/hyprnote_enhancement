@@ -57,6 +57,15 @@ impl ListenClientBuilder {
             ..self.params.clone().unwrap_or_default()
         };
 
+        // Log transcription parameters
+        println!("[STT API Request] Connecting to transcription service: {}", self.api_base.as_ref().unwrap());
+        println!("[STT API Request] Parameters: channels={}, model={:?}, languages={:?}, timestamp={}",
+            channels,
+            params.model.as_ref().unwrap_or(&"hypr-whisper".to_string()),
+            params.languages.iter().map(|l| l.iso639().code()).collect::<Vec<_>>(),
+            chrono::Utc::now().to_rfc3339()
+        );
+
         {
             let mut path = url.path().to_string();
             if !path.ends_with('/') {
@@ -73,26 +82,20 @@ impl ListenClientBuilder {
             // https://www.rfc-editor.org/info/bcp47
             match params.languages.len() {
                 0 => {
-                    query_pairs.append_pair("detect_language", "true");
+                    query_pairs.append_pair("language", "zh");
                 }
                 1 => {
                     let code = params.languages[0].iso639().code();
                     query_pairs.append_pair("language", code);
-                    query_pairs.append_pair("languages", code);
                 }
                 _ => {
                     // https://developers.deepgram.com/docs/multilingual-code-switching
                     query_pairs.append_pair("language", "multi");
-
-                    for lang in &params.languages {
-                        let code = lang.iso639().code();
-
-                        query_pairs.append_pair("languages", code);
-
-                        // Not supported for streaming
-                        // https://developers.deepgram.com/docs/language-detection
-                        // query_pairs.append_pair("detect_language", code);
-                    }
+                //  multi language specification only and detect language not supported in streaming
+                //     for lang in &params.languages {
+                //         let code = lang.iso639().code();
+                //         query_pairs.append_pair("detect_language", code);
+                //     }
                 }
             }
 
@@ -107,16 +110,16 @@ impl ListenClientBuilder {
                 .append_pair("model", &params.model.unwrap_or("hypr-whisper".to_string()))
                 .append_pair("channels", &channels.to_string())
                 .append_pair("filler_words", "false")
-                .append_pair("interim_results", "true")
+                // .append_pair("interim_results", "true")
                 .append_pair("mip_opt_out", "true")
                 .append_pair("sample_rate", "16000")
                 .append_pair("encoding", "linear16")
-                .append_pair("diarize", "true")
+                // .append_pair("diarize", "true")
                 .append_pair("multichannel", "true")
                 .append_pair("punctuate", "true")
                 .append_pair("smart_format", "true")
                 .append_pair("vad_events", "false")
-                .append_pair("numerals", "true")
+                // .append_pair("numerals", "true")
                 .append_pair("extra", &format!("start_time:{}", start_time_ms));
 
             query_pairs.append_pair(
@@ -189,8 +192,46 @@ impl WebSocketIO for ListenClient {
 
     fn from_message(msg: Message) -> Option<Self::Output> {
         match msg {
-            Message::Text(text) => serde_json::from_str::<Self::Output>(&text).ok(),
-            _ => None,
+            Message::Text(text) => {
+                let result = serde_json::from_str::<Self::Output>(&text);
+                match &result {
+                    Ok(response) => {
+                        // Log successful transcription responses
+                        match response {
+                            owhisper_interface::StreamResponse::TranscriptResponse { is_final, channel, channel_index, .. } => {
+                                if *is_final {
+                                    println!("[STT API Response] Final transcript received: channel_index={:?}, words_count={}, timestamp={}",
+                                        channel_index,
+                                        channel.alternatives.get(0).map(|alt| alt.words.len()).unwrap_or(0),
+                                        chrono::Utc::now().to_rfc3339()
+                                    );
+                                } else {
+                                    println!("[STT API Response] Partial transcript received: channel_index={:?}, words_count={}, timestamp={}",
+                                        channel_index,
+                                        channel.alternatives.get(0).map(|alt| alt.words.len()).unwrap_or(0),
+                                        chrono::Utc::now().to_rfc3339()
+                                    );
+                                }
+                            }
+                            _ => {
+                                println!("[STT API Response] Non-transcript response received: timestamp={}", chrono::Utc::now().to_rfc3339());
+                            }
+                        }
+                    }
+                    Err(error) => {
+                        println!("[STT API Error] Failed to parse response: {:?}, timestamp={}", error, chrono::Utc::now().to_rfc3339());
+                    }
+                }
+                result.ok()
+            },
+            Message::Binary(data) => {
+                println!("[STT API Response] Binary message received: {} bytes, timestamp={}", data.len(), chrono::Utc::now().to_rfc3339());
+                None
+            },
+            _ => {
+                println!("[STT API Response] Unknown message type received, timestamp={}", chrono::Utc::now().to_rfc3339());
+                None
+            },
         }
     }
 }
@@ -226,8 +267,46 @@ impl WebSocketIO for ListenClientDual {
 
     fn from_message(msg: Message) -> Option<Self::Output> {
         match msg {
-            Message::Text(text) => serde_json::from_str::<Self::Output>(&text).ok(),
-            _ => None,
+            Message::Text(text) => {
+                let result = serde_json::from_str::<Self::Output>(&text);
+                match &result {
+                    Ok(response) => {
+                        // Log successful transcription responses
+                        match response {
+                            owhisper_interface::StreamResponse::TranscriptResponse { is_final, channel, channel_index, .. } => {
+                                if *is_final {
+                                    println!("[STT API Response] Final transcript received: channel_index={:?}, words_count={}, timestamp={}",
+                                        channel_index,
+                                        channel.alternatives.get(0).map(|alt| alt.words.len()).unwrap_or(0),
+                                        chrono::Utc::now().to_rfc3339()
+                                    );
+                                } else {
+                                    println!("[STT API Response] Partial transcript received: channel_index={:?}, words_count={}, timestamp={}",
+                                        channel_index,
+                                        channel.alternatives.get(0).map(|alt| alt.words.len()).unwrap_or(0),
+                                        chrono::Utc::now().to_rfc3339()
+                                    );
+                                }
+                            }
+                            _ => {
+                                println!("[STT API Response] Non-transcript response received: timestamp={}", chrono::Utc::now().to_rfc3339());
+                            }
+                        }
+                    }
+                    Err(error) => {
+                        println!("[STT API Error] Failed to parse response: {:?}, timestamp={}", error, chrono::Utc::now().to_rfc3339());
+                    }
+                }
+                result.ok()
+            },
+            Message::Binary(data) => {
+                println!("[STT API Response] Binary message received: {} bytes, timestamp={}", data.len(), chrono::Utc::now().to_rfc3339());
+                None
+            },
+            _ => {
+                println!("[STT API Response] Unknown message type received, timestamp={}", chrono::Utc::now().to_rfc3339());
+                None
+            },
         }
     }
 }
@@ -247,8 +326,18 @@ impl ListenClient {
         ),
         hypr_ws::Error,
     > {
+        println!("[STT API Connection] Establishing WebSocket connection for single channel audio");
         let ws = WebSocketClient::new(self.request.clone());
-        ws.from_audio::<Self>(audio_stream).await
+        match ws.from_audio::<Self>(audio_stream).await {
+            Ok(result) => {
+                println!("[STT API Connection] WebSocket connection established successfully");
+                Ok(result)
+            },
+            Err(error) => {
+                println!("[STT API Error] Failed to establish WebSocket connection: {:?}", error);
+                Err(error)
+            }
+        }
     }
 }
 
@@ -263,8 +352,18 @@ impl ListenClientDual {
         ),
         hypr_ws::Error,
     > {
+        println!("[STT API Connection] Establishing WebSocket connection for dual channel audio");
         let ws = WebSocketClient::new(self.request.clone());
-        ws.from_audio::<Self>(stream).await
+        match ws.from_audio::<Self>(stream).await {
+            Ok(result) => {
+                println!("[STT API Connection] WebSocket connection established successfully");
+                Ok(result)
+            },
+            Err(error) => {
+                println!("[STT API Error] Failed to establish WebSocket connection: {:?}", error);
+                Err(error)
+            }
+        }
     }
 }
 

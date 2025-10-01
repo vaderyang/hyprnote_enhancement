@@ -1,9 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
-import { showProGateModal } from "@/components/pro-gate-modal/service";
 import { useHypr, useRightPanel } from "@/contexts";
-import { useLicense } from "@/hooks/use-license";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import { useSessions } from "@hypr/utils/contexts";
@@ -25,7 +23,6 @@ export function ChatView() {
   const navigate = useNavigate();
   const { isExpanded, chatInputRef, pendingSelection } = useRightPanel();
   const { userId } = useHypr();
-  const { getLicense } = useLicense();
 
   const [inputValue, setInputValue] = useState("");
   const [showHistory, setShowHistory] = useState(false);
@@ -109,15 +106,7 @@ export function ChatView() {
       return;
     }
 
-    const userMessageCount = messages.filter((m: any) => m.role === "user").length;
-    if (userMessageCount >= 4 && !getLicense.data?.valid) {
-      await analyticsCommands.event({
-        event: "pro_license_required_chat",
-        distinct_id: userId,
-      });
-      await showProGateModal("chat");
-      return;
-    }
+    // License limit removed - all users can send unlimited chat messages
 
     analyticsCommands.event({
       event: "chat_message_sent",
