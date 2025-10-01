@@ -433,14 +433,19 @@ impl HyprWindow {
             .title(self.title())
             .disable_drag_drop_handler();
 
-        builder = builder
-            .transparent(true)
-            .decorations(false);
-
         #[cfg(target_os = "macos")]
         {
             builder = builder
-                .theme(Some(tauri::Theme::Light));
+                .decorations(true)
+                .hidden_title(true)
+                .theme(Some(tauri::Theme::Light))
+                .traffic_light_position(tauri::LogicalPosition::new(12.0, 20.0))
+                .title_bar_style(tauri::TitleBarStyle::Overlay);
+        }
+
+        #[cfg(target_os = "windows")]
+        {
+            builder = builder.decorations(false);
         }
 
         builder
