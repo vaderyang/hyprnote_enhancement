@@ -317,38 +317,20 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
       console.error("Failed to save language preferences:", error);
     }
 
+    // Mark as completed (for Netis cloud services, no downloads needed)
+    setWentThroughDownloads(true);
+
     commands.setOnboardingNeeded(false);
     onClose();
   };
 
   useEffect(() => {
     if (!isOpen && wentThroughDownloads) {
-      localSttCommands.startServer(null);
-
-      localLlmCommands.startServer();
-
-      const checkAndShowToasts = async () => {
-        try {
-          const sttModelExists = await localSttCommands.isModelDownloaded(selectedSttModel as WhisperModel);
-
-          if (!sttModelExists) {
-            showSttModelDownloadToast(selectedSttModel, undefined, queryClient);
-          }
-
-          if (llmSelection === "hyprllm") {
-            const llmModelExists = await localLlmCommands.isModelDownloaded("HyprLLM");
-            if (!llmModelExists) {
-              showLlmModelDownloadToast("HyprLLM", undefined, queryClient);
-            }
-          }
-        } catch (error) {
-          console.error("Error checking model download status:", error);
-        }
-      };
-
-      checkAndShowToasts();
+      // For Netis cloud services, we don't start local servers
+      // The custom STT and LLM providers are already configured
+      console.log("Onboarding completed - using Netis cloud services");
     }
-  }, [isOpen, wentThroughDownloads, selectedSttModel, llmSelection, queryClient]);
+  }, [isOpen, wentThroughDownloads]);
 
   return (
     <Modal
