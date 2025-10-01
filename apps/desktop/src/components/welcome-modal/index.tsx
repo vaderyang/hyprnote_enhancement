@@ -240,11 +240,17 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   }, [currentStep, userId]);
 
   const handleStartLocal = async () => {
-    // Skip LLM and STT model selection - use defaults
-    const smallModel = "QuantizedSmall" as WhisperModel;
-    setSelectedSttModel(smallModel);
-    setLlmSelection("hyprllm");
-    sessionStorage.setItem("model-download-toast-dismissed", "true");
+    // Configure Netis STT service (no local downloads needed)
+    await localSttCommands.setProvider("Custom");
+    await localSttCommands.setCustomBaseUrl("http://v.netis.com.cn:13000");
+    await localSttCommands.setCustomModel("netis");
+
+    // Configure Netis LLM service (no local downloads needed)
+    await connectorCommands.setCustomLlmEnabled(true);
+    await connectorCommands.setProviderSource("others");
+    await connectorCommands.setCustomLlmModel("netis-llm");
+    await connectorCommands.setOthersApiBase("http://v.netis.com.cn:13000");
+    await connectorCommands.setOthersModel("netis-llm");
 
     setCurrentStep("audio-permissions");
   };
@@ -264,8 +270,8 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   };
 
   const handleAudioPermissionsContinue = () => {
-    // Skip LLM selection and go directly to download progress
-    setCurrentStep("download-progress");
+    // Skip downloads (using Netis services) - go directly to language selection
+    setCurrentStep("language-selection");
   };
 
   const handleLLMSelectionContinue = async (selection: "hyprllm" | "byom") => {

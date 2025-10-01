@@ -23,7 +23,7 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ portReady, onGetStarte
         once
         className="mb-20 text-center text-2xl font-medium text-neutral-600"
       >
-        {t`Where Conversations Stay Yours`}
+        {t`Wisdom from conversations`}
       </TextAnimate>
 
       <PushableButton
