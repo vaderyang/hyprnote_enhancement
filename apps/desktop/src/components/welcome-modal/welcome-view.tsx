@@ -13,11 +13,9 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ portReady, onGetStarte
 
   return (
     <div className="flex flex-col items-center">
-      <img
-        src="/assets/logo.svg"
-        alt="HYPRNOTE"
-        className="mb-6 w-[300px]"
-      />
+      <div className="mb-6 text-8xl font-bold tracking-tight text-neutral-800">
+        PINOTE
+      </div>
 
       <TextAnimate
         animation="slideUp"

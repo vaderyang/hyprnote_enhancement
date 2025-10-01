@@ -239,7 +239,13 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     }
   }, [currentStep, userId]);
 
-  const handleStartLocal = () => {
+  const handleStartLocal = async () => {
+    // Skip LLM and STT model selection - use defaults
+    const smallModel = "QuantizedSmall" as WhisperModel;
+    setSelectedSttModel(smallModel);
+    setLlmSelection("hyprllm");
+    sessionStorage.setItem("model-download-toast-dismissed", "true");
+
     setCurrentStep("audio-permissions");
   };
 
@@ -258,7 +264,8 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   };
 
   const handleAudioPermissionsContinue = () => {
-    setCurrentStep("llm-selection");
+    // Skip LLM selection and go directly to download progress
+    setCurrentStep("download-progress");
   };
 
   const handleLLMSelectionContinue = async (selection: "hyprllm" | "byom") => {
