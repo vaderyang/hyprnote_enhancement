@@ -69,6 +69,7 @@ tauri-plugin-shell = { workspace = true }
 tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
 tauri-plugin-store = { workspace = true }
 tauri-plugin-updater = "2.9"
+window-vibrancy = "0.5"
 
 sentry = { workspace = true }
 tracing = { workspace = true }

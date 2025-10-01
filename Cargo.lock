@@ -3919,6 +3919,7 @@ dependencies = [
  "url",
  "uuid",
  "whisper-local-model",
+ "window-vibrancy 0.5.3",
 ]
 
 [[package]]
@@ -14128,7 +14129,7 @@ dependencies = [
  "urlpattern",
  "webkit2gtk",
  "webview2-com 0.38.0",
- "window-vibrancy",
+ "window-vibrancy 0.6.0",
  "windows 0.61.3",
 ]
 
@@ -15376,6 +15377,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "text-utils"
+version = "0.1.0"
+dependencies = [
+ "unicode-segmentation",
+]
+
+[[package]]
 name = "thiserror"
 version = "1.0.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -16094,6 +16102,7 @@ dependencies = [
  "owhisper-interface",
  "serde",
  "serde_json",
+ "text-utils",
  "thiserror 2.0.16",
  "tokio",
  "tokio-stream",
@@ -16140,6 +16149,7 @@ dependencies = [
  "rodio",
  "serde",
  "serde_json",
+ "text-utils",
  "thiserror 2.0.16",
  "tokio",
  "tokio-stream",
@@ -16193,6 +16203,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_qs 1.0.0-rc.3",
+ "text-utils",
  "thiserror 2.0.16",
  "tokio",
  "tokio-stream",
@@ -16238,6 +16249,7 @@ dependencies = [
  "rodio",
  "serde_json",
  "serde_qs 1.0.0-rc.3",
+ "text-utils",
  "thiserror 2.0.16",
  "tokio",
  "tokio-util",
@@ -17439,6 +17451,20 @@ checksum = "42aecb895d6340af9ccc8dab9aeabfeab6d5d7266c5fd172c8be7e07db71c1e3"
 dependencies = [
  "winapi-i686-pc-windows-gnu",
  "winapi-x86_64-pc-windows-gnu",
+]
+
+[[package]]
+name = "window-vibrancy"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "831ad7678290beae36be6f9fad9234139c7f00f3b536347de7745621716be82d"
+dependencies = [
+ "objc2 0.5.2",
+ "objc2-app-kit 0.2.2",
+ "objc2-foundation 0.2.2",
+ "raw-window-handle",
+ "windows-sys 0.59.0",
+ "windows-version",
 ]
 
 [[package]]

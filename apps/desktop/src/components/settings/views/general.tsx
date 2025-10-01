@@ -103,11 +103,11 @@ export default function General() {
     defaultValues: {
       autostart: false,
       displayLanguage: "en",
-      spokenLanguages: ["en"],
-      telemetryConsent: true,
-      jargons: "",
+      spokenLanguages: ["zh"],
+      telemetryConsent: false,
+      jargons: "BPC, NPM, Netis, 故障诊断, 端到端, 性能",
       saveRecordings: true,
-      summaryLanguage: "en",
+      summaryLanguage: "zh",
     },
   });
 
@@ -116,11 +116,11 @@ export default function General() {
       form.reset({
         autostart: config.data.general.autostart ?? false,
         displayLanguage: config.data.general.display_language ?? "en",
-        spokenLanguages: config.data.general.spoken_languages ?? ["en"],
-        telemetryConsent: config.data.general.telemetry_consent ?? true,
-        jargons: (config.data.general.jargons ?? []).join(", "),
+        spokenLanguages: config.data.general.spoken_languages ?? ["zh"],
+        telemetryConsent: config.data.general.telemetry_consent ?? false,
+        jargons: (config.data.general.jargons ?? ["BPC", "NPM", "Netis", "故障诊断", "端到端", "性能"]).join(", "),
         saveRecordings: config.data.general.save_recordings ?? true,
-        summaryLanguage: config.data.general.summary_language ?? "en",
+        summaryLanguage: config.data.general.summary_language ?? "zh",
       });
     }
   }, [config.data, form]);
@@ -136,7 +136,7 @@ export default function General() {
         autostart: v.autostart ?? false,
         display_language: v.displayLanguage,
         spoken_languages: v.spokenLanguages,
-        telemetry_consent: v.telemetryConsent ?? true,
+        telemetry_consent: v.telemetryConsent ?? false,
         jargons: v.jargons.split(",").map((jargon) => jargon.trim()).filter(Boolean),
         save_recordings: v.saveRecordings ?? true,
         selected_template_id: config.data.general.selected_template_id,
@@ -236,6 +236,7 @@ export default function General() {
             )}
           />
 
+          {/* Share usage data setting (HIDDEN)
           <FormField
             control={form.control}
             name="telemetryConsent"
@@ -265,6 +266,7 @@ export default function General() {
               </FormItem>
             )}
           />
+          */}
 
           <FormField
             control={form.control}

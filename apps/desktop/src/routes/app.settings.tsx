@@ -58,7 +58,7 @@ function TabButton({ tab, isActive, onClick }: { tab: Tab; isActive: boolean; on
       case "integrations":
         return t`Integrations`;
       case "billing":
-        return t`Billing & License`;
+        return t`License`;
       case "mcp":
         return t`MCP`;
       case "help-support":
@@ -131,7 +131,7 @@ function Component() {
       case "integrations":
         return t`Integrations`;
       case "billing":
-        return t`Billing & License`;
+        return t`License`;
       case "mcp":
         return t`MCP`;
       case "help-support":

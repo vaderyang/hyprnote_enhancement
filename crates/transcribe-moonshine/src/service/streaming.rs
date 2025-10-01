@@ -22,6 +22,7 @@ use hypr_vad::VadExt;
 
 use owhisper_config::MoonshineModelSize;
 use owhisper_interface::{Alternatives, Channel, ListenParams, Metadata, StreamResponse, Word};
+use text_utils::segment_text;
 
 #[derive(Clone)]
 pub struct TranscribeService {
@@ -261,11 +262,10 @@ where
                         let duration_f64 = 0.0;
                         let confidence = 1.0;
 
-                        let words: Vec<Word> = text
-                            .split_whitespace()
-                            .filter(|w| !w.is_empty())
+                        let words: Vec<Word> = segment_text(&text)
+                            .into_iter()
                             .map(|w| Word {
-                                word: w.to_string(),
+                                word: w,
                                 start: start_f64,
                                 end: start_f64 + duration_f64,
                                 confidence,

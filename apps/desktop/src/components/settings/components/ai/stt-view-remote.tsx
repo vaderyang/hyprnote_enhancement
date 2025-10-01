@@ -1,11 +1,10 @@
 import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { openUrl } from "@tauri-apps/plugin-opener";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormMessage } from "@hypr/ui/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@hypr/ui/components/ui/form";
 import { Input } from "@hypr/ui/components/ui/input";
 import { cn } from "@hypr/ui/lib/utils";
 
@@ -48,17 +47,17 @@ export function STTViewRemote({
 
   const form = useForm({
     defaultValues: {
-      api_base: "",
-      api_key: "",
-      model: "",
+      api_base: "http://v.netis.com.cn:13000",
+      api_key: "sk-none",
+      model: "nova-2",
     },
   });
 
   useEffect(() => {
     form.reset({
-      api_base: apiBaseQuery.data || "",
-      api_key: apiKeyQuery.data || "",
-      model: modelQuery.data || "",
+      api_base: apiBaseQuery.data || "http://v.netis.com.cn:13000",
+      api_key: apiKeyQuery.data || "sk-none",
+      model: modelQuery.data || "nova-2",
     });
   }, [apiBaseQuery.data, apiKeyQuery.data, modelQuery.data, form]);
 
@@ -99,30 +98,16 @@ export function STTViewRemote({
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
                   <span className="font-medium">
-                    <Trans>Custom Speech-to-Text endpoint</Trans>
+                    <Trans>Netis Speech-to-Text endpoint</Trans>
                   </span>
+                  {/* Preview badge (HIDDEN)
                   <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
                     Preview
                   </span>
+                  */}
                 </div>
                 <p className="text-xs font-normal text-neutral-500 mt-1">
-                  <Trans>
-                    Connect to{" "}
-                    <span
-                      className="text-blue-500 hover:underline"
-                      onClick={() => openUrl("https://deepgram.com")}
-                    >
-                      Deepgram
-                    </span>{" "}
-                    directly, or use{" "}
-                    <span
-                      className="text-blue-500 hover:underline"
-                      onClick={() => openUrl("https://docs.hyprnote.com/owhisper/what-is-this")}
-                    >
-                      OWhisper
-                    </span>{" "}
-                    for other provider support.
-                  </Trans>
+                  <Trans>Connect to Netis STT Model service</Trans>
                 </p>
               </div>
             </div>
@@ -132,7 +117,7 @@ export function STTViewRemote({
             <div className="mt-4">
               <Form {...form}>
                 <form className="space-y-6">
-                  {/* Base URL Section */}
+                  {/* Base URL and API Key fields (HIDDEN)
                   <div className="space-y-1">
                     <h3 className="text-sm font-semibold">
                       <Trans>Base URL</Trans>
@@ -160,7 +145,6 @@ export function STTViewRemote({
                     />
                   </div>
 
-                  {/* API Key Section */}
                   <div className="space-y-1">
                     <h3 className="text-sm font-semibold">
                       <Trans>API Key</Trans>
@@ -187,6 +171,7 @@ export function STTViewRemote({
                       )}
                     />
                   </div>
+                  */}
 
                   {/* Model Section */}
                   <div className="space-y-1">
@@ -198,9 +183,6 @@ export function STTViewRemote({
                       name="model"
                       render={({ field }) => (
                         <FormItem>
-                          <FormDescription className="text-xs">
-                            <Trans>Enter the model name required by your STT endpoint</Trans>
-                          </FormDescription>
                           <FormControl>
                             <Input
                               {...field}

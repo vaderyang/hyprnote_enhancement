@@ -54,13 +54,14 @@ impl SeedData {
 
     fn override_session_raw_note(&mut self) {
         self.sessions.iter_mut().for_each(|session| {
-            if session.id == UserDatabase::onboarding_session_id() {
-                session.raw_memo_html = ONBOARDING_RAW_HTML.to_string();
-            }
+            // Onboarding and Thank You notes disabled for Netis deployment
+            // if session.id == UserDatabase::onboarding_session_id() {
+            //     session.raw_memo_html = ONBOARDING_RAW_HTML.to_string();
+            // }
 
-            if session.id == UserDatabase::thank_you_session_id() {
-                session.raw_memo_html = hypr_buffer::opinionated_md_to_html(THANK_YOU_MD).unwrap();
-            }
+            // if session.id == UserDatabase::thank_you_session_id() {
+            //     session.raw_memo_html = hypr_buffer::opinionated_md_to_html(THANK_YOU_MD).unwrap();
+            // }
         });
     }
 

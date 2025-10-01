@@ -48,7 +48,7 @@ function SectionContainer({ title, subtitle, headerAction, children }: {
 function UnlimitedSection() {
   return (
     <SectionContainer
-      title="Unlimited Access" 
+      title="AI Consul"
       subtitle="All features are now available to all users"
     >
       

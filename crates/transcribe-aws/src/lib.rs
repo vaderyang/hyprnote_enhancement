@@ -30,6 +30,7 @@ use aws_sdk_transcribestreaming::types::{
 use aws_sdk_transcribestreaming::{config::Region, Client};
 
 use owhisper_interface::{ListenInputChunk, ListenOutputChunk, ListenParams, Word2};
+use text_utils::segment_text;
 
 mod error;
 pub use error::*;
@@ -156,10 +157,10 @@ impl TranscribeService {
                                         let mut words = Vec::new();
 
                                         // AWS doesn't provide word-level data in the same way
-                                        // So we'll split the transcript into words
-                                        for word_text in text.split_whitespace() {
+                                        // So we'll segment the transcript into words
+                                        for word_text in segment_text(text) {
                                             words.push(Word2 {
-                                                text: word_text.to_string(),
+                                                text: word_text,
                                                 speaker: None,
                                                 confidence: None,
                                                 start_ms: Some((result.start_time * 1000.0) as u64),
