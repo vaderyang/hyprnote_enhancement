@@ -245,12 +245,17 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     await localSttCommands.setCustomBaseUrl("http://v.netis.com.cn:13000");
     await localSttCommands.setCustomModel("netis");
 
-    // Configure Netis LLM service (no local downloads needed)
+    // Configure Netis LLM service with correct API settings
     await connectorCommands.setCustomLlmEnabled(true);
     await connectorCommands.setProviderSource("others");
-    await connectorCommands.setCustomLlmModel("netis-llm");
-    await connectorCommands.setOthersApiBase("http://v.netis.com.cn:13000");
-    await connectorCommands.setOthersModel("netis-llm");
+    await connectorCommands.setOthersApiBase("http://v.netis.com.cn:13000/v1");
+    await connectorCommands.setOthersApiKey("sk-418Nlx53Dvu87o-TWOgyJg");
+    await connectorCommands.setOthersModel("gpt-4o");
+    await connectorCommands.setCustomLlmModel("gpt-4o");
+    await connectorCommands.setCustomLlmConnection({
+      api_base: "http://v.netis.com.cn:13000/v1",
+      api_key: "sk-418Nlx53Dvu87o-TWOgyJg",
+    });
 
     setCurrentStep("audio-permissions");
   };
