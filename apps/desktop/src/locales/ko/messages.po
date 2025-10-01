@@ -338,7 +338,7 @@ msgstr ""
 msgid "Autonomy Selector"
 msgstr ""
 
-#: src/components/welcome-modal/index.tsx:351
+#: src/components/welcome-modal/index.tsx:369
 msgid "Back"
 msgstr ""
 
@@ -613,7 +613,7 @@ msgstr ""
 msgid "Generating title..."
 msgstr ""
 
-#: src/components/welcome-modal/welcome-view.tsx:36
+#: src/components/welcome-modal/welcome-view.tsx:34
 msgid "Get Started"
 msgstr ""
 
@@ -1274,8 +1274,12 @@ msgid "What's your role?"
 msgstr ""
 
 #: src/components/welcome-modal/welcome-view.tsx:28
-msgid "Where Conversations Stay Yours"
-msgstr ""
+#~ msgid "Where Conversations Stay Yours"
+#~ msgstr ""
+
+#: src/components/welcome-modal/welcome-view.tsx:26
+msgid "Wisdom from conversations"
+msgstr "대화에서 얻는 지혜"
 
 #: src/components/settings/views/integrations.tsx:213
 msgid "Your API key for Obsidian local-rest-api plugin."
