@@ -55,7 +55,6 @@ const customSchema = z.object({
 
 export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { userId } = useHypr();
   const [port, setPort] = useState<number | null>(null);
   const [currentStep, setCurrentStep] = useState<
@@ -66,10 +65,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     | "custom-endpoint"
     | "language-selection"
   >("welcome");
-  const [selectedSttModel, setSelectedSttModel] = useState<WhisperModel>("QuantizedSmall");
   const [wentThroughDownloads, setWentThroughDownloads] = useState(false);
-  const [llmSelection, setLlmSelection] = useState<"hyprllm" | "byom" | null>(null);
-  // const [cameFromLlmSelection, setCameFromLlmSelection] = useState(false);
 
   /*
   const selectSTTModel = useMutation({
@@ -277,25 +273,15 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   };
 
   const handleLLMSelectionContinue = async (selection: "hyprllm" | "byom") => {
-    setLlmSelection(selection);
     if (selection === "hyprllm") {
-      // Automatically select the 'small' model and proceed to download
-      const smallModel = "QuantizedSmall" as WhisperModel;
-      // await selectSTTModel.mutateAsync(smallModel);
-      setSelectedSttModel(smallModel);
       sessionStorage.setItem("model-download-toast-dismissed", "true");
       setCurrentStep("download-progress");
     } else {
-      // setCameFromLlmSelection(false);
       setCurrentStep("custom-endpoint");
     }
   };
 
   const handleCustomEndpointContinue = async () => {
-    // Automatically select the 'small' model and proceed to download
-    const smallModel = "QuantizedSmall" as WhisperModel;
-    // await selectSTTModel.mutateAsync(smallModel);
-    setSelectedSttModel(smallModel);
     sessionStorage.setItem("model-download-toast-dismissed", "true");
     setCurrentStep("download-progress");
   };
@@ -358,8 +344,8 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
           )}
           {currentStep === "download-progress" && (
             <DownloadProgressView
-              selectedSttModel={selectedSttModel}
-              llmSelection={llmSelection}
+              selectedSttModel={"QuantizedSmall"}
+              llmSelection={"hyprllm"}
               onContinue={handleDownloadProgressContinue}
             />
           )}
