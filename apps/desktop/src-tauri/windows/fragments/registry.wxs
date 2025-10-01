@@ -2,10 +2,10 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Fragment>
     <DirectoryRef Id="TARGETDIR">
-      <Component Id="HyprnoteRegistryEntries" Guid="*">
+      <Component Id="PinoteRegistryEntries" Guid="*">
         <RegistryKey
           Root="HKCU"
-          Key="Software\Fastrepl\Hyprnote"
+          Key="Software\Netis\Pinote"
           Action="createAndRemoveOnUninstall"
         >
           <RegistryValue
