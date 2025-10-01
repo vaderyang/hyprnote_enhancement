@@ -13,6 +13,8 @@ use utils::*;
 pub enum DetectEvent {
     MicStarted(Vec<InstalledApp>),
     MicStopped,
+    MeetingAppStarted(String), // bundle_id
+    MeetingAppStopped(String), // bundle_id
 }
 
 pub type DetectCallback = std::sync::Arc<dyn Fn(DetectEvent) + Send + Sync + 'static>;
@@ -32,6 +34,7 @@ trait Observer: Send + Sync {
 #[derive(Default)]
 pub struct Detector {
     mic_detector: MicDetector,
+    app_detector: AppDetector,
 }
 
 impl Detector {
@@ -48,11 +51,14 @@ impl Detector {
     }
 
     pub fn start(&mut self, f: DetectCallback) {
+        let f_clone = f.clone();
         self.mic_detector.start(f);
+        self.app_detector.start(f_clone);
     }
 
     pub fn stop(&mut self) {
         self.mic_detector.stop();
+        self.app_detector.stop();
     }
 }
 

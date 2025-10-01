@@ -76,7 +76,7 @@ impl NotificationHandler {
             return;
         }
 
-        match trigger.event {
+        match &trigger.event {
             hypr_detect::DetectEvent::MicStarted(apps) => {
                 if apps.is_empty() {
                     tracing::info!(reason = "apps.is_empty", "skip_notification");
@@ -143,6 +143,35 @@ impl NotificationHandler {
                 tauri::async_runtime::spawn(async move {
                     app_handle.stop_session().await;
                 });
+            }
+            hypr_detect::DetectEvent::MeetingAppStarted(bundle_id) => {
+                if respect_do_not_disturb && hypr_notification::is_do_not_disturb() {
+                    tracing::info!(reason = "respect_do_not_disturb", "skip_notification");
+                    return;
+                }
+
+                let timestamp_secs = trigger
+                    .timestamp
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap_or(std::time::Duration::from_secs(0))
+                    .as_secs();
+                let window_key = timestamp_secs / 10;
+                let key = format!("meeting-app-detection-{}", window_key);
+
+                tracing::info!(bundle_id = bundle_id, "meeting_app_started");
+
+                hypr_notification::show(
+                    &hypr_notification::Notification::builder()
+                        .title("Meeting app started")
+                        .key(key)
+                        .message(&format!("Detected: {}", bundle_id))
+                        .url("hypr://hyprnote.com/app/new?record=true")
+                        .timeout(std::time::Duration::from_secs(5))
+                        .build(),
+                );
+            }
+            hypr_detect::DetectEvent::MeetingAppStopped(bundle_id) => {
+                tracing::info!(bundle_id = bundle_id, "meeting_app_stopped");
             }
         }
     }
