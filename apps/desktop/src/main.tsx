@@ -20,7 +20,6 @@ import { createOngoingSessionStore, createSessionsStore } from "@hypr/utils/stor
 import { broadcastQueryClient } from "./utils";
 
 import { messages as enMessages } from "./locales/en/messages";
-import { messages as koMessages } from "./locales/ko/messages";
 
 import { routeTree } from "./routeTree.gen";
 
@@ -29,10 +28,8 @@ import { defaultOptions } from "tauri-plugin-sentry-api";
 
 i18n.load({
   en: enMessages,
-  ko: koMessages,
 });
 
-// TODO: load language from user settings
 i18n.activate("en");
 
 const queryClient = new QueryClient({
