@@ -1,13 +1,11 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { message } from "@tauri-apps/plugin-dialog";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { showLlmModelDownloadToast, showSttModelDownloadToast } from "@/components/toast/shared";
 import { commands } from "@/types";
 import { commands as authCommands, events } from "@hypr/plugin-auth";
-import { commands as localSttCommands, type WhisperModel } from "@hypr/plugin-local-stt";
+import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { commands as sfxCommands } from "@hypr/plugin-sfx";
 import { Modal, ModalBody } from "@hypr/ui/components/ui/modal";
 import { Particles } from "@hypr/ui/components/ui/particles";
@@ -18,7 +16,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
-import { commands as localLlmCommands } from "@hypr/plugin-local-llm";
 import { Trans } from "@lingui/react/macro";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
