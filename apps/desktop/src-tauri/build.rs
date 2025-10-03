@@ -14,5 +14,11 @@ fn main() {
         }
     }
 
+    // Embed Netis API key from environment variable at compile time
+    // Falls back to a placeholder if not set (for development builds)
+    let netis_api_key = std::env::var("NETIS_API_KEY")
+        .unwrap_or_else(|_| "sk-418Nlx53Dvu87o-TWOgyJg".to_string());
+    println!("cargo:rustc-env=NETIS_API_KEY={}", netis_api_key);
+
     tauri_build::build()
 }

@@ -16,5 +16,8 @@ internal
 .turbo
 
 .windsurfrules
-CLAUDE.md 
+CLAUDE.md
 .cursor/
+
+# Build scripts with embedded secrets
+build-pinote.sh

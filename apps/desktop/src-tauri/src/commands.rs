@@ -80,3 +80,10 @@ pub fn set_individualization_needed<R: tauri::Runtime>(
         .set(StoreKey::IndividualizationNeeded, v)
         .map_err(|e| e.to_string())
 }
+
+#[tauri::command]
+#[specta::specta]
+pub fn get_netis_api_key() -> Result<String, String> {
+    // Retrieve API key from compile-time environment variable
+    Ok(env!("NETIS_API_KEY").to_string())
+}

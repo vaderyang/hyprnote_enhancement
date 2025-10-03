@@ -27,6 +27,9 @@ async isIndividualizationNeeded() : Promise<boolean> {
 },
 async setIndividualizationNeeded(v: boolean) : Promise<null> {
     return await TAURI_INVOKE("set_individualization_needed", { v });
+},
+async getNetisApiKey() : Promise<string> {
+    return await TAURI_INVOKE("get_netis_api_key");
 }
 }
 

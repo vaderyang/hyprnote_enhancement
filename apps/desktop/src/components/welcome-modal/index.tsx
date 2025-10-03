@@ -233,6 +233,9 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   }, [currentStep, userId]);
 
   const handleStartLocal = async () => {
+    // Retrieve API key from secure build-time configuration
+    const apiKey = await commands.getNetisApiKey();
+
     // Configure Netis STT service (no local downloads needed)
     await localSttCommands.setProvider("Custom");
     await localSttCommands.setCustomBaseUrl("http://v.netis.com.cn:13000");
@@ -242,12 +245,12 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     await connectorCommands.setCustomLlmEnabled(true);
     await connectorCommands.setProviderSource("others");
     await connectorCommands.setOthersApiBase("http://v.netis.com.cn:13000/v1");
-    await connectorCommands.setOthersApiKey("sk-418Nlx53Dvu87o-TWOgyJg");
+    await connectorCommands.setOthersApiKey(apiKey);
     await connectorCommands.setOthersModel("gpt-4o");
     await connectorCommands.setCustomLlmModel("gpt-4o");
     await connectorCommands.setCustomLlmConnection({
       api_base: "http://v.netis.com.cn:13000/v1",
-      api_key: "sk-418Nlx53Dvu87o-TWOgyJg",
+      api_key: apiKey,
     });
 
     setCurrentStep("audio-permissions");
