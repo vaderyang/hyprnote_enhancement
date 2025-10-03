@@ -312,9 +312,16 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
 
   useEffect(() => {
     if (!isOpen && wentThroughDownloads) {
-      // For Netis cloud services, we don't start local servers
-      // The custom STT and LLM providers are already configured
-      console.log("Onboarding completed - using Netis cloud services");
+      // Start local STT server for audio capture (required even with Netis cloud)
+      localSttCommands.startServer(null).catch((error) => {
+        console.error("Failed to start STT server:", error);
+        message(`Failed to initialize audio recording: ${error}. Please check microphone permissions.`, {
+          title: "Recording Error",
+          kind: "error",
+        });
+      });
+
+      console.log("Onboarding completed - audio capture enabled with Netis transcription");
     }
   }, [isOpen, wentThroughDownloads]);
 

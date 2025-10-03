@@ -197,26 +197,52 @@ export function enhanceFailedToast() {
   });
 }
 
-export function recordingStartFailedToast() {
+export function recordingStartFailedToast(errorMessage?: string) {
   const id = "recording-start-failed";
 
-  const handleClick = () => {
+  const handleOpenSettings = () => {
     windowsCommands.windowShow({ type: "settings" });
     sonnerToast.dismiss(id);
   };
+
+  const handleOpenSystemPrefs = () => {
+    // Open macOS System Preferences > Privacy & Security > Microphone
+    import("@tauri-apps/plugin-shell").then(({ open }) => {
+      open("x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone");
+    }).catch(console.error);
+    sonnerToast.dismiss(id);
+  };
+
+  const isPermissionError = errorMessage?.toLowerCase().includes("permission") ||
+                           errorMessage?.toLowerCase().includes("access denied") ||
+                           errorMessage?.toLowerCase().includes("not authorized");
 
   toast({
     id,
     title: "Failed to start recording",
     content: (
-      <div className="space-y-1">
-        <div>Recording could not be started. Check your audio settings.</div>
-        <Button variant="default" onClick={handleClick}>
-          Open Settings
-        </Button>
+      <div className="space-y-2">
+        <div className="text-sm">
+          {errorMessage || "Recording could not be started. This may be due to microphone permissions."}
+        </div>
+        {isPermissionError && (
+          <div className="text-xs text-muted-foreground">
+            Please grant microphone access in System Preferences → Privacy & Security → Microphone
+          </div>
+        )}
+        <div className="flex gap-2">
+          {isPermissionError && (
+            <Button variant="default" size="sm" onClick={handleOpenSystemPrefs}>
+              Open System Preferences
+            </Button>
+          )}
+          <Button variant="outline" size="sm" onClick={handleOpenSettings}>
+            App Settings
+          </Button>
+        </div>
       </div>
     ),
     dismissible: true,
-    duration: 5000,
+    duration: 10000,
   });
 }

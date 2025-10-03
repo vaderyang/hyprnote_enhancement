@@ -48,7 +48,8 @@ const queryClient = new QueryClient({
 const sessionsStore = createSessionsStore();
 const ongoingSessionStore = createOngoingSessionStore(sessionsStore, {
   onRecordingStartFailed: (error) => {
-    recordingStartFailedToast();
+    const errorMessage = error?.toString() || "Unknown error occurred while starting recording";
+    recordingStartFailedToast(errorMessage);
   },
 });
 
