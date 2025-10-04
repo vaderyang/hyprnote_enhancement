@@ -31,6 +31,7 @@
     "macOS": {
       "minimumSystemVersion": "14.2",
       "entitlements": "./Entitlements.plist",
+      "signingIdentity": "Apple Development: vader.yang@gmail.com (3SDGBVYC79)",
       "dmg": {
         "background": "assets/dmg-background-stable.png",
         "windowSize": {
