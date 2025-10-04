@@ -25,6 +25,8 @@ common_event_derives! {
         MicMuted { value: bool },
         #[serde(rename = "speakerMuted")]
         SpeakerMuted { value: bool },
+        #[serde(rename = "permissionError")]
+        PermissionError { message: String },
     }
 }
 

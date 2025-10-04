@@ -418,13 +418,8 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
             if matches!(provider, Provider::Custom) {
                 let base_url = self.get_custom_base_url()?;
                 if !base_url.is_empty() {
-                    let client = reqwest::Client::new();
-                    let url = format!("{}/v1/status", base_url.trim_end_matches('/'));
-
-                    match client.get(&url).send().await {
-                        Ok(response) if response.status().as_u16() == 204 => ServerHealth::Ready,
-                        _ => ServerHealth::Unreachable,
-                    }
+                    // Custom STT is ready as long as base URL is configured
+                    ServerHealth::Ready
                 } else {
                     ServerHealth::Unreachable
                 }

@@ -133,7 +133,7 @@ impl ListenClientBuilder {
         if host.contains("127.0.0.1") || host.contains("localhost") {
             url.set_scheme("ws").unwrap();
         } else {
-            url.set_scheme("wss").unwrap();
+            url.set_scheme("ws").unwrap();
         }
 
         url.to_string()

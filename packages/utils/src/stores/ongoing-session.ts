@@ -121,6 +121,11 @@ export const createOngoingSessionStore = (
               draft.speakerMuted = payload.value;
             })
           );
+        } else if (payload.type === "permissionError") {
+          // Handle permission errors by notifying the user
+          if (callbacks?.onRecordingStartFailed) {
+            callbacks.onRecordingStartFailed(new Error(payload.message));
+          }
         }
       }).then((unlisten) => {
         set((state) =>
@@ -130,7 +135,20 @@ export const createOngoingSessionStore = (
         );
       });
 
-      listenerCommands.startSession(sessionId).then(() => {
+      // Check and request microphone permission before starting session
+      listenerCommands.checkMicrophoneAccess().then((hasAccess) => {
+        if (!hasAccess) {
+          // Request permission first
+          return listenerCommands.requestMicrophoneAccess().then(() => {
+            // Give macOS a moment to process the permission
+            return new Promise(resolve => setTimeout(resolve, 500));
+          }).then(() => {
+            return listenerCommands.startSession(sessionId);
+          });
+        } else {
+          return listenerCommands.startSession(sessionId);
+        }
+      }).then(() => {
         set({ status: "running_active", loading: false });
       }).catch((error) => {
         console.error(error);

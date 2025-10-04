@@ -28,12 +28,14 @@ pub struct SourceArgs {
     pub mic_device: Option<String>,
     pub token: CancellationToken,
     pub onboarding: bool,
+    pub app: tauri::AppHandle,
 }
 
 pub struct SourceState {
     mic_device: Option<String>,
     token: CancellationToken,
     onboarding: bool,
+    app: tauri::AppHandle,
     mic_muted: Arc<AtomicBool>,
     spk_muted: Arc<AtomicBool>,
     run_task: Option<tokio::task::JoinHandle<()>>,
@@ -114,6 +116,7 @@ impl Actor for SourceActor {
             mic_device,
             token: args.token,
             onboarding: args.onboarding,
+            app: args.app,
             mic_muted: Arc::new(AtomicBool::new(false)),
             spk_muted: Arc::new(AtomicBool::new(false)),
             run_task: None,
@@ -197,6 +200,7 @@ async fn start_source_loop(
     let mic_muted = st.mic_muted.clone();
     let spk_muted = st.spk_muted.clone();
     let mic_device = st.mic_device.clone();
+    let app = st.app.clone();
 
     let stream_cancel_token = CancellationToken::new();
     st.stream_cancel_token = Some(stream_cancel_token.clone());
@@ -212,9 +216,20 @@ async fn start_source_loop(
     let handle = if use_mixed {
         #[cfg(target_os = "macos")]
         {
+            let app1 = app.clone();
             tokio::spawn(async move {
                 let mixed_stream = {
-                    let mut mixed_input = AudioInput::from_mic(mic_device).unwrap();
+                    let mut mixed_input = match AudioInput::from_mic(mic_device) {
+                        Ok(input) => input,
+                        Err(e) => {
+                            use tauri_specta::Event;
+                            let error_msg = format!("Failed to initialize microphone: {}. Please check microphone permissions in System Settings.", e);
+                            tracing::error!(error = %e, "Failed to initialize microphone - check permissions");
+                            let _ = crate::SessionEvent::PermissionError { message: error_msg }.emit(&app1);
+                            myself2.stop(None);
+                            return;
+                        }
+                    };
                     ResampledAsyncSource::new(mixed_input.stream(), SAMPLE_RATE)
                         .chunks(AEC_BLOCK_SIZE)
                 };
@@ -264,9 +279,20 @@ async fn start_source_loop(
             tokio::spawn(async move {})
         }
     } else {
+        let app2 = app.clone();
         tokio::spawn(async move {
             let mic_stream = {
-                let mut mic_input = hypr_audio::AudioInput::from_mic(mic_device).unwrap();
+                let mut mic_input = match hypr_audio::AudioInput::from_mic(mic_device) {
+                    Ok(input) => input,
+                    Err(e) => {
+                        use tauri_specta::Event;
+                        let error_msg = format!("Failed to initialize microphone: {}. Please check microphone permissions in System Settings.", e);
+                        tracing::error!(error = %e, "Failed to initialize microphone - check permissions");
+                        let _ = crate::SessionEvent::PermissionError { message: error_msg }.emit(&app2);
+                        myself2.stop(None);
+                        return;
+                    }
+                };
                 ResampledAsyncSource::new(mic_input.stream(), SAMPLE_RATE).chunks(AEC_BLOCK_SIZE)
             };
             tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;

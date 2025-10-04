@@ -283,6 +283,7 @@ impl SessionActor {
                 token: state.token.clone(),
                 mic_device: None,
                 onboarding: state.onboarding,
+                app: state.app.clone(),
             },
             supervisor,
         )

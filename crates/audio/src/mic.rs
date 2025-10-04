@@ -57,7 +57,14 @@ impl MicInput {
         };
 
         let config = device.default_input_config().unwrap();
-        tracing::info!(sample_rate = ?config.sample_rate());
+        let device_name = device.name().unwrap_or("Unknown".to_string());
+        tracing::info!(
+            device_name = %device_name,
+            sample_rate = ?config.sample_rate(),
+            channels = config.channels(),
+            sample_format = ?config.sample_format(),
+            "Microphone initialized"
+        );
 
         Ok(Self {
             host,
@@ -81,16 +88,37 @@ impl MicInput {
                 config: &cpal::SupportedStreamConfig,
                 mut tx: mpsc::UnboundedSender<Vec<f32>>,
             ) -> Result<cpal::Stream, cpal::BuildStreamError> {
+                use std::sync::Arc;
+                use std::sync::atomic::{AtomicU64, Ordering};
+
                 let channels = config.channels() as usize;
+                let sample_count = Arc::new(AtomicU64::new(0));
+                let sample_count_clone = sample_count.clone();
+
                 device.build_input_stream::<S, _, _>(
                     &config.config(),
                     move |data: &[S], _input_callback_info: &_| {
-                        let _ = tx.start_send(
-                            data.iter()
-                                .step_by(channels)
-                                .map(|&x| x.to_sample())
-                                .collect(),
-                        );
+                        let samples: Vec<f32> = data.iter()
+                            .step_by(channels)
+                            .map(|&x| x.to_sample())
+                            .collect();
+
+                        // Log first few callbacks for debugging
+                        let count = sample_count_clone.fetch_add(1, Ordering::Relaxed);
+                        if count < 5 || count % 100 == 0 {
+                            let max_amplitude = samples.iter()
+                                .map(|&x| x.abs())
+                                .max_by(|a, b| a.partial_cmp(b).unwrap())
+                                .unwrap_or(0.0);
+                            tracing::debug!(
+                                sample_count = count,
+                                samples_len = samples.len(),
+                                max_amplitude,
+                                "Audio callback received"
+                            );
+                        }
+
+                        let _ = tx.start_send(samples);
                     },
                     |err| {
                         tracing::error!("an error occurred on stream: {}", err);

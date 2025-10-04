@@ -66,11 +66,18 @@ export default function ListenButton({ sessionId, isCompact = false }: { session
     refetchInterval: 1500,
     enabled: ongoingSessionStatus !== "running_active",
     queryFn: async () => {
+      const provider = await localSttCommands.getProvider();
+      const servers = await localSttCommands.getServers();
+
+      // For custom provider, only check if server is ready
+      if (provider === "Custom") {
+        return servers.custom === "ready";
+      }
+
+      // For local provider, check both model and server
       const currentModel = await localSttCommands.getLocalModel();
       const isDownloaded = await localSttCommands.isModelDownloaded(currentModel);
-      const servers = await localSttCommands.getServers();
-      const isServerAvailable = (servers.external === "ready") || (servers.internal === "ready")
-        || (servers.custom === "ready");
+      const isServerAvailable = (servers.external === "ready") || (servers.internal === "ready");
       return isDownloaded && isServerAvailable;
     },
   });

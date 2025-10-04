@@ -72,7 +72,7 @@ sessionEvent: "plugin:listener:session-event"
 
 /** user-defined types **/
 
-export type SessionEvent = { type: "inactive" } | { type: "running_active" } | { type: "finalWords"; words: Partial<{ [key in number]: Word2[] }> } | { type: "partialWords"; words: Partial<{ [key in number]: Word2[] }> } | { type: "audioAmplitude"; mic: number; speaker: number } | { type: "micMuted"; value: boolean } | { type: "speakerMuted"; value: boolean }
+export type SessionEvent = { type: "inactive" } | { type: "running_active" } | { type: "finalWords"; words: Partial<{ [key in number]: Word2[] }> } | { type: "partialWords"; words: Partial<{ [key in number]: Word2[] }> } | { type: "audioAmplitude"; mic: number; speaker: number } | { type: "micMuted"; value: boolean } | { type: "speakerMuted"; value: boolean } | { type: "permissionError"; message: string }
 export type SpeakerIdentity = { type: "unassigned"; value: { index: number } } | { type: "assigned"; value: { id: string; label: string } }
 export type Word2 = { text: string; speaker: SpeakerIdentity | null; confidence: number | null; start_ms: number | null; end_ms: number | null }
 
