@@ -29,6 +29,7 @@ pub enum WhisperModel {
 }
 
 impl WhisperModel {
+    /// Returns the primary model URL (Hugging Face)
     pub fn file_name(&self) -> &str {
         match self {
             WhisperModel::QuantizedTiny => "ggml-tiny-q8_0.bin",
@@ -54,27 +55,28 @@ impl WhisperModel {
     }
 
     pub fn model_url(&self) -> &str {
+        // Using hf-mirror.com which is optimized for China and provides better speeds
         match self {
             WhisperModel::QuantizedTiny => {
-                "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny-q8_0.bin"
+                "https://hf-mirror.com/ggerganov/whisper.cpp/resolve/main/ggml-tiny-q8_0.bin"
             }
             WhisperModel::QuantizedTinyEn => {
-                "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.en-q8_0.bin"
+                "https://hf-mirror.com/ggerganov/whisper.cpp/resolve/main/ggml-tiny.en-q8_0.bin"
             }
             WhisperModel::QuantizedBase => {
-                "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base-q8_0.bin"
+                "https://hf-mirror.com/ggerganov/whisper.cpp/resolve/main/ggml-base-q8_0.bin"
             }
             WhisperModel::QuantizedBaseEn => {
-                "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en-q8_0.bin"
+                "https://hf-mirror.com/ggerganov/whisper.cpp/resolve/main/ggml-base.en-q8_0.bin"
             }
             WhisperModel::QuantizedSmall => {
-                "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small-q8_0.bin"
+                "https://hf-mirror.com/ggerganov/whisper.cpp/resolve/main/ggml-small-q8_0.bin"
             }
             WhisperModel::QuantizedSmallEn => {
-                "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.en-q8_0.bin"
+                "https://hf-mirror.com/ggerganov/whisper.cpp/resolve/main/ggml-small.en-q8_0.bin"
             }
             WhisperModel::QuantizedLargeTurbo => {
-                "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q8_0.bin"
+                "https://hf-mirror.com/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q8_0.bin"
             }
         }
     }
