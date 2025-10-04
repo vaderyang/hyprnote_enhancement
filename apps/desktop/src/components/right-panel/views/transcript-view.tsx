@@ -20,6 +20,7 @@ import { useHypr } from "@/contexts";
 import { useContainerWidth } from "@/hooks/use-container-width";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as dbCommands, Human, Word2 } from "@hypr/plugin-db";
+import { commands as localSttCommands } from "@hypr/plugin-local-stt";
 import { commands as miscCommands } from "@hypr/plugin-misc";
 import TranscriptEditor, {
   getSpeakerLabel,
@@ -87,6 +88,32 @@ export function TranscriptView() {
 
 function RenderInMeeting({ partialWords, finalWords }: { partialWords: Word2[]; finalWords: Word2[] }) {
   const { isAtBottom, scrollContainerRef, handleScroll, scrollToBottom } = useScrollToBottom([finalWords]);
+  const queryClient = useQueryClient();
+
+  const providerQuery = useQuery(
+    {
+      queryKey: ["stt-provider"],
+      queryFn: () => localSttCommands.getProvider(),
+    },
+    queryClient,
+  );
+
+  const customBaseUrlQuery = useQuery(
+    {
+      queryKey: ["stt-custom-base-url"],
+      queryFn: () => localSttCommands.getCustomBaseUrl(),
+      enabled: providerQuery.data === "Custom",
+    },
+    queryClient,
+  );
+
+  const provider = providerQuery.data ?? "Local";
+  const isNetis = provider === "Custom" && customBaseUrlQuery.data?.includes("netis.com.cn");
+
+  const serviceLabel = isNetis ? "Netis API" : provider === "Local" ? "Whisper Local" : "Custom API";
+  const serviceBgColor = isNetis ? "bg-blue-50" : "bg-green-50";
+  const serviceTextColor = isNetis ? "text-blue-700" : "text-green-700";
+  const serviceBorderColor = isNetis ? "border-blue-200" : "border-green-200";
 
   return (
     <div className="flex-1 relative">
@@ -95,6 +122,21 @@ function RenderInMeeting({ partialWords, finalWords }: { partialWords: Word2[]; 
         className="flex-1 overflow-y-auto px-2 pt-2 pb-6 space-y-4 absolute inset-0"
         onScroll={handleScroll}
       >
+        {/* Service indicator badge */}
+        <div className="flex items-center justify-between mb-3 px-1">
+          <div
+            className={cn(
+              "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border",
+              serviceBgColor,
+              serviceTextColor,
+              serviceBorderColor,
+            )}
+          >
+            <AudioLinesIcon className="w-3.5 h-3.5" />
+            <span>{serviceLabel}</span>
+          </div>
+        </div>
+
         <span className="text-[15px] text-gray-800 leading-relaxed pl-1">
           {finalWords.map(word => word.text).join(" ")}
         </span>
