@@ -443,12 +443,9 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
         model: SupportedSttModel,
         channel: Channel<i8>,
     ) -> Result<(), crate::Error> {
-        let provider = self.get_provider()?;
-
-        if matches!(provider, Provider::Custom) {
-            return Err(crate::Error::UnsupportedModelType);
-        }
-
+        // Allow downloads even if the provider is set to Custom
+        // This enables users to download models before switching to Local provider
+        
         if let SupportedSttModel::Custom(_) = model {
             return Err(crate::Error::UnsupportedModelType);
         }
