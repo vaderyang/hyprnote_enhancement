@@ -24,7 +24,14 @@ use {
 static CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
 
 fn get_client() -> &'static reqwest::Client {
-    CLIENT.get_or_init(|| reqwest::Client::new())
+    CLIENT.get_or_init(|| {
+        reqwest::Client::builder()
+            .connect_timeout(std::time::Duration::from_secs(30))
+            .read_timeout(std::time::Duration::from_secs(300)) // 5 minutes for slow downloads
+            .timeout(std::time::Duration::from_secs(3600)) // 1 hour total timeout
+            .build()
+            .unwrap_or_else(|_| reqwest::Client::new())
+    })
 }
 
 /// Makes a request with optional range header and returns the response.
@@ -273,6 +280,7 @@ fn process_task_result(
 
 const DEFAULT_CHUNK_SIZE: u64 = 8 * 1024 * 1024;
 const MAX_CONCURRENT_CHUNKS: usize = 8;
+const MAX_CHUNK_RETRIES: u32 = 5;
 
 pub async fn download_file_parallel<F: Fn(DownloadProgress) + Send + Sync>(
     url: impl reqwest::IntoUrl,
@@ -418,51 +426,107 @@ pub async fn download_file_parallel_cancellable<F: Fn(DownloadProgress) + Send +
         let cancellation_token_clone = cancellation_token.clone();
 
         let task = async move {
-            // Check cancellation at chunk level
-            if let Some(ref token) = cancellation_token_clone {
-                if token.is_cancelled() {
-                    return Err(crate::Error::Cancelled);
-                }
-            }
+            // Retry logic with exponential backoff for this chunk
+            let mut retry_count = 0;
+            let mut last_error: Option<Error> = None;
 
-            let client = get_client();
-            let range_header = format!("bytes={}-{}", start, end);
-
-            let response = client
-                .get(url_clone)
-                .header("Range", range_header)
-                .send()
-                .await?;
-
-            if response.status() != StatusCode::PARTIAL_CONTENT {
-                return Err(crate::Error::OtherError(format!(
-                    "Server didn't return partial content (status: {})",
-                    response.status()
-                )));
-            }
-
-            let mut bytes = Vec::new();
-            let mut stream = response.bytes_stream();
-
-            while let Some(chunk) = stream.try_next().await? {
-                // Check cancellation during chunk download
+            while retry_count <= MAX_CHUNK_RETRIES {
+                // Check cancellation at chunk level
                 if let Some(ref token) = cancellation_token_clone {
                     if token.is_cancelled() {
-                        return Ok((start, bytes)); // Return what we have so far
+                        return Err(crate::Error::Cancelled);
                     }
                 }
 
-                bytes.extend_from_slice(&chunk);
+                if retry_count > 0 {
+                    // Exponential backoff: 1s, 2s, 4s, 8s, 16s
+                    let delay_secs = 2u64.pow(retry_count - 1);
+                    tracing::warn!(
+                        "Retrying chunk download (attempt {}/{}) after {}s delay: bytes={}-{}",
+                        retry_count + 1,
+                        MAX_CHUNK_RETRIES + 1,
+                        delay_secs,
+                        start,
+                        end
+                    );
+                    tokio::time::sleep(std::time::Duration::from_secs(delay_secs)).await;
+                }
 
-                let mut downloaded_guard = downloaded_clone.lock().unwrap();
-                *downloaded_guard += chunk.len() as u64;
-                let current_downloaded = *downloaded_guard;
-                drop(downloaded_guard);
+                let client = get_client();
+                let range_header = format!("bytes={}-{}", start, end);
 
-                progress_callback_clone(DownloadProgress::Progress(current_downloaded, total_size));
+                let response_result = client
+                    .get(url_clone.clone())
+                    .header("Range", range_header)
+                    .send()
+                    .await;
+
+                let response = match response_result {
+                    Ok(r) => r,
+                    Err(e) => {
+                        last_error = Some(e.into());
+                        retry_count += 1;
+                        continue;
+                    }
+                };
+
+                if response.status() != StatusCode::PARTIAL_CONTENT {
+                    last_error = Some(crate::Error::OtherError(format!(
+                        "Server didn't return partial content (status: {})",
+                        response.status()
+                    )));
+                    retry_count += 1;
+                    continue;
+                }
+
+                let mut bytes = Vec::new();
+                let mut stream = response.bytes_stream();
+                let mut chunk_error = false;
+
+                while let Some(chunk_result) = stream.try_next().await.transpose() {
+                    // Check cancellation during chunk download
+                    if let Some(ref token) = cancellation_token_clone {
+                        if token.is_cancelled() {
+                            return Ok((start, bytes)); // Return what we have so far
+                        }
+                    }
+
+                    match chunk_result {
+                        Ok(chunk) => {
+                            bytes.extend_from_slice(&chunk);
+
+                            let mut downloaded_guard = downloaded_clone.lock().unwrap();
+                            *downloaded_guard += chunk.len() as u64;
+                            let current_downloaded = *downloaded_guard;
+                            drop(downloaded_guard);
+
+                            progress_callback_clone(DownloadProgress::Progress(current_downloaded, total_size));
+                        }
+                        Err(e) => {
+                            last_error = Some(e.into());
+                            chunk_error = true;
+                            break;
+                        }
+                    }
+                }
+
+                // If we successfully downloaded the entire chunk, return it
+                if !chunk_error && !bytes.is_empty() {
+                    return Ok((start, bytes));
+                }
+
+                retry_count += 1;
             }
 
-            Ok((start, bytes))
+            // All retries exhausted
+            Err(last_error.unwrap_or_else(|| {
+                crate::Error::OtherError(format!(
+                    "Failed to download chunk after {} retries: bytes={}-{}",
+                    MAX_CHUNK_RETRIES + 1,
+                    start,
+                    end
+                ))
+            }))
         };
 
         tasks.push(task);
