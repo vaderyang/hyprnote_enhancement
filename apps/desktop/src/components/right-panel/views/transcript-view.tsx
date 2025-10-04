@@ -116,27 +116,27 @@ function RenderInMeeting({ partialWords, finalWords }: { partialWords: Word2[]; 
   const serviceBorderColor = isNetis ? "border-blue-200" : "border-green-200";
 
   return (
-    <div className="flex-1 relative">
+    <div className="flex-1 relative flex flex-col">
+      {/* Service indicator badge - Fixed at top */}
+      <div className="flex-shrink-0 px-3 py-2 bg-white border-b border-gray-100">
+        <div
+          className={cn(
+            "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border shadow-sm",
+            serviceBgColor,
+            serviceTextColor,
+            serviceBorderColor,
+          )}
+        >
+          <AudioLinesIcon className="w-3.5 h-3.5" />
+          <span className="font-semibold">{serviceLabel}</span>
+        </div>
+      </div>
+
       <div
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto px-2 pt-2 pb-6 space-y-4 absolute inset-0"
+        className="flex-1 overflow-y-auto px-2 pt-2 pb-6 space-y-4"
         onScroll={handleScroll}
       >
-        {/* Service indicator badge */}
-        <div className="flex items-center justify-between mb-3 px-1">
-          <div
-            className={cn(
-              "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border",
-              serviceBgColor,
-              serviceTextColor,
-              serviceBorderColor,
-            )}
-          >
-            <AudioLinesIcon className="w-3.5 h-3.5" />
-            <span>{serviceLabel}</span>
-          </div>
-        </div>
-
         <span className="text-[15px] text-gray-800 leading-relaxed pl-1">
           {finalWords.map(word => word.text).join(" ")}
         </span>
