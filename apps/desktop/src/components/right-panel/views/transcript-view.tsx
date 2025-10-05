@@ -35,14 +35,36 @@ import TranscriptEditor, {
   wordsToSpeakerChunks,
 } from "@hypr/tiptap/transcript";
 import { Button } from "@hypr/ui/components/ui/button";
+import { Modal, ModalBody, ModalDescription, ModalFooter, ModalHeader, ModalTitle } from "@hypr/ui/components/ui/modal";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
 import { Progress } from "@hypr/ui/components/ui/progress";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
-import { cn } from "@hypr/ui/lib/utils";
-import { useOngoingSession } from "@hypr/utils/contexts";
-import { SearchHeader } from "../components/search-header";
-import { useTranscript } from "../hooks/useTranscript";
-import { useRightPanel } from "@/contexts/right-panel";
+import { Textarea } from "@hypr/ui/components/ui/textarea";
+import { cn } from "@hypimport { useRightPanel } from "@/contexts/right-panel";
+
+// Helper to convert plain text to Word2 array
+function plainTextToWords(text: string): Word2[] {
+  const tokens = text
+    .replace(/\s+/g, " ")
+    .trim()
+    .split(" ")
+    .filter(Boolean);
+
+  let start = 0;
+  return tokens.map((t) => {
+    // Estimate duration by token length (bounded: 80-800ms)
+    const dur = Math.max(80, Math.min(800, t.length * 35));
+    const word: Word2 = {
+      text: t,
+      speaker: { type: "unassigned", value: { index: 0 } },
+      confidence: 1.0,
+      start_ms: start,
+      end_ms: start + dur,
+    };
+    start += 100; // sequential: 0, 100, 200...
+    return word;
+  });
+}
 
 export function TranscriptView() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -414,9 +436,13 @@ function RenderNotInMeeting({ sessionId, words }: { sessionId: string; words: Wo
 
 function RenderNotInMeetingEmpty({ sessionId, panelWidth }: { sessionId: string; panelWidth: number }) {
   const queryClient = useQueryClient();
+  const { hidePanel } = useRightPanel();
   const [uploading, setUploading] = useState(false);
   const [transcriptionService, setTranscriptionService] = useState<string>("");
   const [progress, setProgress] = useState(0);
+  const [showPasteModal, setShowPasteModal] = useState(false);
+  const [pastedText, setPastedText] = useState("");
+  const [pasteError, setPasteError] = useState<string | null>(null);
 
   const ongoingSession = useOngoingSession((s) => ({
     start: s.start,
@@ -501,7 +527,15 @@ function RenderNotInMeetingEmpty({ sessionId, panelWidth }: { sessionId: string;
         queryClient.invalidateQueries({
           queryKey: ["session", "words", sessionId],
         });
-        console.log("[Upload] Query invalidated");
+        queryClient.invalidateQueries({ queryKey: ["session", sessionId] });
+        console.log("[Upload] Queries invalidated");
+        
+        // Trigger auto-enhancement
+        console.log("[Upload] Triggering auto-enhancement");
+        window.dispatchEvent(new CustomEvent("hypr/auto_enhance", { detail: { sessionId } }));
+        
+        // Auto-collapse panel
+        hidePanel();
       }
       setUploading(false);
       setTranscriptionService("");
@@ -510,6 +544,83 @@ function RenderNotInMeetingEmpty({ sessionId, panelWidth }: { sessionId: string;
     } catch (error) {
       console.error("[Upload] Failed to transcribe audio file:", error);
       console.error("[Upload] Error stack:", error instanceof Error ? error.stack : "No stack trace");
+      setUploading(false);
+      setTranscriptionService("");
+      setProgress(0);
+    }
+  };
+
+  const handleOpenPaste = () => {
+    setPasteError(null);
+    setPastedText("");
+    setShowPasteModal(true);
+  };
+
+  const handleCancelPaste = () => {
+    setShowPasteModal(false);
+    setPastedText("");
+    setPasteError(null);
+  };
+
+  const handleConfirmPaste = async () => {
+    console.log("[Paste] Starting paste transcription flow");
+    
+    try {
+      // Validate input
+      const trimmedText = pastedText.trim();
+      if (!trimmedText) {
+        setPasteError("Please enter some text to paste");
+        return;
+      }
+
+      // Check for very large inputs (2MB limit)
+      const textSizeInBytes = new Blob([trimmedText]).size;
+      if (textSizeInBytes > 2 * 1024 * 1024) {
+        setPasteError("Text is too large. Please paste less than 2MB of text.");
+        return;
+      }
+
+      // Close modal and show progress
+      setShowPasteModal(false);
+      setTranscriptionService("Manual Paste");
+      setUploading(true);
+      setProgress(50); // Static progress for paste
+
+      console.log("[Paste] Converting text to words");
+      const words = plainTextToWords(trimmedText);
+      console.log("[Paste] Converted to", words.length, "words");
+
+      // Save to session
+      const session = await dbCommands.getSession({ id: sessionId });
+      console.log("[Paste] Session retrieved:", session?.id);
+      
+      if (session) {
+        await dbCommands.upsertSession({ ...session, words });
+        console.log("[Paste] Session updated with words");
+        
+        // Invalidate queries
+        queryClient.invalidateQueries({ queryKey: ["session", "words", sessionId] });
+        queryClient.invalidateQueries({ queryKey: ["session", sessionId] });
+        console.log("[Paste] Queries invalidated");
+        
+        // Trigger auto-enhancement
+        console.log("[Paste] Triggering auto-enhancement");
+        window.dispatchEvent(new CustomEvent("hypr/auto_enhance", { detail: { sessionId } }));
+        
+        // Auto-collapse panel
+        hidePanel();
+      }
+
+      // Reset UI state
+      setUploading(false);
+      setTranscriptionService("");
+      setProgress(0);
+      setPastedText("");
+      console.log("[Paste] Paste flow completed successfully");
+    } catch (error) {
+      console.error("[Paste] Failed to process pasted text:", error);
+      setPasteError("Failed to process pasted text. Please try again.");
+      setShowPasteModal(true); // Reopen modal to show error
       setUploading(false);
       setTranscriptionService("");
       setProgress(0);
@@ -608,7 +719,8 @@ function RenderNotInMeetingEmpty({ sessionId, panelWidth }: { sessionId: string;
                       variant="outline"
                       size="sm"
                       className="hover:bg-neutral-100"
-                      disabled
+                      disabled={uploading}
+                      onClick={handleOpenPaste}
                       title="Paste transcript"
                     >
                       <ClipboardIcon size={14} />
@@ -627,10 +739,15 @@ function RenderNotInMeetingEmpty({ sessionId, panelWidth }: { sessionId: string;
                       <UploadIcon size={14} />
                       {isVeryNarrow ? "Upload" : "Upload recording"}
                     </Button>
-                    <Button variant="outline" size="sm" className="hover:bg-neutral-100" disabled>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="hover:bg-neutral-100" 
+                      disabled={uploading}
+                      onClick={handleOpenPaste}
+                    >
                       <ClipboardIcon size={14} />
                       {isVeryNarrow ? "Paste" : "Paste transcript"}
-                      {!isNarrow && <span className="text-xs text-neutral-400 italic ml-1">coming soon</span>}
                     </Button>
                   </>
                 )}
@@ -638,6 +755,45 @@ function RenderNotInMeetingEmpty({ sessionId, panelWidth }: { sessionId: string;
           </>
         )}
       </div>
+      
+      {/* Paste Transcript Modal */}
+      <Modal open={showPasteModal} onClose={handleCancelPaste} size="lg">
+        <ModalBody>
+          <ModalHeader className="px-6 pt-6 pb-2">
+            <ModalTitle>Paste Transcript</ModalTitle>
+            <ModalDescription className="mt-2">
+              Paste or type your raw transcript text. We'll convert it into a transcript for you.
+            </ModalDescription>
+          </ModalHeader>
+          <div className="px-6 py-4">
+            <Textarea
+              placeholder="Paste your transcript here...\n\nExample: During the meeting we discussed the project timeline and agreed on next steps."
+              value={pastedText}
+              onChange={(e) => setPastedText(e.target.value)}
+              className="min-h-[200px] resize-y w-full"
+            />
+            {pasteError && (
+              <p className="text-sm text-red-600 mt-2">{pasteError}</p>
+            )}
+          </div>
+          <ModalFooter className="pb-6">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancelPaste}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleConfirmPaste}
+              disabled={!pastedText.trim()}
+            >
+              Import
+            </Button>
+          </ModalFooter>
+        </ModalBody>
+      </Modal>
     </div>
   );
 }

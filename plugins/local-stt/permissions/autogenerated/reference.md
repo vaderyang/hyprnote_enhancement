@@ -764,4 +764,30 @@ Denies the stop_server command without any pre-configured scope.
 
 </td>
 </tr>
+
+<tr>
+<td>
+
+`local-stt:allow-transcribe-audio-file`
+
+</td>
+<td>
+
+Enables the transcribe_audio_file command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`local-stt:deny-transcribe-audio-file`
+
+</td>
+<td>
+
+Denies the transcribe_audio_file command without any pre-configured scope.
+
+</td>
+</tr>
 </table>

@@ -248,6 +248,19 @@ export default function EditorArea({
     enhanceMutate: enhance.mutate,
   });
 
+  // Listen for manual auto-enhance trigger from paste/upload
+  useEffect(() => {
+    const handler = (e: any) => {
+      const detail = e?.detail;
+      if (!detail || detail.sessionId !== sessionId) return;
+      if (enhance.status !== "pending") {
+        enhance.mutate({});
+      }
+    };
+    window.addEventListener("hypr/auto_enhance", handler);
+    return () => window.removeEventListener("hypr/auto_enhance", handler);
+  }, [sessionId, enhance.status, enhance.mutate]);
+
   const handleChangeNote = useCallback(
     (content: string) => {
       if (showRaw) {
