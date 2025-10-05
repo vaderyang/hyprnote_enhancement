@@ -181,14 +181,13 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
                     }
                     HyprMenuItem::DevToolsOpen => {
                         #[cfg(debug_assertions)]
-                        {
-                            if let Some(window) = app.get_webview_window("main") {
-                                // Simply open devtools - Tauri will toggle if already open
-                                let _ = window.open_devtools();
-                            }
+                        if let Some(window) = app.get_webview_window("main") {
+                            // In debug mode, try to open devtools
+                            // Note: This only works in dev builds, not production
+                            let _ = window.open_devtools();
                         }
-                        // In release builds, menu item exists but does nothing
-                        // DevTools are not available without debug_assertions
+                        // In release builds, this menu item does nothing
+                        // Users should run 'pnpm run tauri dev' to access DevTools
                     }
                 }
             })
