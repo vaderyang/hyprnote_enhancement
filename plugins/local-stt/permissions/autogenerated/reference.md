@@ -23,6 +23,10 @@ Default permissions for the plugin
 - `allow-set-provider`
 - `allow-get-custom-model`
 - `allow-set-custom-model`
+- `allow-transcribe-audio-file`
+- `allow-list-ggml-backends`
+- `allow-get-local-model`
+- `allow-set-local-model`
 
 ## Permission Table
 
