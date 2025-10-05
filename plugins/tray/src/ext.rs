@@ -187,10 +187,8 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
                                 let _ = window.open_devtools();
                             }
                         }
-                        #[cfg(not(debug_assertions))]
-                        {
-                            tracing::warn!("DevTools are not available in release builds");
-                        }
+                        // In release builds, menu item exists but does nothing
+                        // DevTools are not available without debug_assertions
                     }
                 }
             })
