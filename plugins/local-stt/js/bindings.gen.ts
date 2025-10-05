@@ -66,6 +66,9 @@ async getCustomModel() : Promise<SupportedSttModel | null> {
 },
 async setCustomModel(model: SupportedSttModel) : Promise<null> {
     return await TAURI_INVOKE("plugin:local-stt|set_custom_model", { model });
+},
+async transcribeAudioFile(filePath: string) : Promise<Word2[]> {
+    return await TAURI_INVOKE("plugin:local-stt|transcribe_audio_file", { filePath });
 }
 }
 
@@ -85,10 +88,12 @@ export type Language = { iso639: string }
 export type Provider = "Local" | "Custom"
 export type ServerHealth = "unreachable" | "loading" | "ready"
 export type ServerType = "internal" | "external" | "custom"
+export type SpeakerIdentity = { type: "unassigned"; value: { index: number } } | { type: "assigned"; value: { id: string; label: string } }
 export type SttModelInfo = { key: SupportedSttModel; display_name: string; size_bytes: number }
 export type SupportedSttModel = WhisperModel | AmModel | string
 export type TAURI_CHANNEL<TSend> = null
 export type WhisperModel = "QuantizedTiny" | "QuantizedTinyEn" | "QuantizedBase" | "QuantizedBaseEn" | "QuantizedSmall" | "QuantizedSmallEn" | "QuantizedLargeTurbo"
+export type Word2 = { text: string; speaker: SpeakerIdentity | null; confidence: number | null; start_ms: number | null; end_ms: number | null }
 
 /** tauri-specta globals **/
 

@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMatch } from "@tanstack/react-router";
 import { writeText as writeTextToClipboard } from "@tauri-apps/plugin-clipboard-manager";
+import { open } from "@tauri-apps/plugin-dialog";
 import clsx from "clsx";
 
 import {
@@ -410,6 +411,9 @@ function RenderNotInMeeting({ sessionId, words }: { sessionId: string; words: Wo
 }
 
 function RenderNotInMeetingEmpty({ sessionId, panelWidth }: { sessionId: string; panelWidth: number }) {
+  const queryClient = useQueryClient();
+  const [uploading, setUploading] = useState(false);
+
   const ongoingSession = useOngoingSession((s) => ({
     start: s.start,
     status: s.status,
@@ -419,6 +423,36 @@ function RenderNotInMeetingEmpty({ sessionId, panelWidth }: { sessionId: string;
   const handleStartRecording = () => {
     if (ongoingSession.status === "inactive") {
       ongoingSession.start(sessionId);
+    }
+  };
+
+  const handleUploadAudio = async () => {
+    try {
+      const file = await open({
+        multiple: false,
+        directory: false,
+        filters: [{
+          name: "Audio Files",
+          extensions: ["wav", "mp3", "m4a", "ogg", "flac"],
+        }],
+      });
+
+      if (file) {
+        setUploading(true);
+        const words = await localSttCommands.transcribeAudioFile(file);
+
+        const session = await dbCommands.getSession({ id: sessionId });
+        if (session) {
+          await dbCommands.upsertSession({ ...session, words });
+          queryClient.invalidateQueries({
+            queryKey: ["session", "words", sessionId],
+          });
+        }
+        setUploading(false);
+      }
+    } catch (error) {
+      console.error("Failed to transcribe audio file:", error);
+      setUploading(false);
     }
   };
 
@@ -475,10 +509,11 @@ function RenderNotInMeetingEmpty({ sessionId, panelWidth }: { sessionId: string;
                   variant="outline"
                   size="sm"
                   className="hover:bg-neutral-100"
-                  disabled
+                  disabled={uploading}
+                  onClick={handleUploadAudio}
                   title="Upload recording"
                 >
-                  <UploadIcon size={14} />
+                  {uploading ? <Spinner color="black" /> : <UploadIcon size={14} />}
                 </Button>
                 <Button
                   variant="outline"
@@ -493,10 +528,15 @@ function RenderNotInMeetingEmpty({ sessionId, panelWidth }: { sessionId: string;
             )
             : (
               <>
-                <Button variant="outline" size="sm" className="hover:bg-neutral-100" disabled>
-                  <UploadIcon size={14} />
-                  {isVeryNarrow ? "Upload" : "Upload recording"}
-                  {!isNarrow && <span className="text-xs text-neutral-400 italic ml-1">coming soon</span>}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="hover:bg-neutral-100"
+                  disabled={uploading}
+                  onClick={handleUploadAudio}
+                >
+                  {uploading ? <Spinner color="black" /> : <UploadIcon size={14} />}
+                  {uploading ? "Transcribing..." : isVeryNarrow ? "Upload" : "Upload recording"}
                 </Button>
                 <Button variant="outline" size="sm" className="hover:bg-neutral-100" disabled>
                   <ClipboardIcon size={14} />

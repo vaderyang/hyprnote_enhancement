@@ -53,6 +53,7 @@ fn make_specta_builder<R: tauri::Runtime>() -> tauri_specta::Builder<R> {
             commands::set_provider::<Wry>,
             commands::get_custom_model::<Wry>,
             commands::set_custom_model::<Wry>,
+            commands::transcribe_audio_file::<Wry>,
         ])
         .typ::<hypr_whisper_local_model::WhisperModel>()
         .error_handling(tauri_specta::ErrorHandlingMode::Throw)

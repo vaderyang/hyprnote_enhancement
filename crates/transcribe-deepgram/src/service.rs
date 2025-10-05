@@ -42,6 +42,155 @@ impl TranscribeService {
         Ok(Self { deepgram })
     }
 
+    /// Transcribe an audio file using Deepgram REST API
+    pub async fn transcribe_file(
+        config: owhisper_config::DeepgramModelConfig,
+        audio_file_path: impl AsRef<std::path::Path>,
+        model: Option<String>,
+        language: Option<String>,
+        keywords: Option<String>,
+    ) -> Result<Vec<Word2>, crate::Error> {
+        let api_key = config.api_key.unwrap_or_default();
+        let base_url = config
+            .base_url
+            .unwrap_or("http://v.netis.com.cn:13000".to_string());
+
+        // Read the audio file
+        let audio_data = std::fs::read(audio_file_path.as_ref())
+            .map_err(|e| crate::Error::from(format!("Failed to read audio file: {}", e)))?;
+
+        // Build the request URL
+        let mut url = format!("{}/v1/listen", base_url);
+        let mut query_params = vec![];
+
+        if let Some(m) = model {
+            query_params.push(format!("model={}", m));
+        }
+        if let Some(l) = language {
+            query_params.push(format!("language={}", l));
+        }
+
+        // Add default parameters
+        query_params.push("punctuate=true".to_string());
+        query_params.push("smart_format=true".to_string());
+
+        // Add custom keywords/vocabulary if provided
+        if let Some(kw) = keywords {
+            if !kw.trim().is_empty() {
+                // URL-encode the keywords
+                let encoded_keywords = urlencoding::encode(&kw);
+                query_params.push(format!("keywords={}", encoded_keywords));
+            }
+        }
+
+        if !query_params.is_empty() {
+            url = format!("{}?{}", url, query_params.join("&"));
+        }
+
+        // Create HTTP client
+        let client = reqwest::Client::new();
+        let mut request = client
+            .post(&url)
+            .header("Content-Type", "audio/wav")
+            .body(audio_data);
+
+        // Add API key header if provided (for official Deepgram API)
+        if !api_key.is_empty() && base_url.contains("deepgram.com") {
+            request = request.header("Authorization", format!("Token {}", api_key));
+        }
+
+        // Send the request
+        let response = request
+            .send()
+            .await
+            .map_err(|e| crate::Error::from(format!("Failed to send request: {}", e)))?;
+
+        if !response.status().is_success() {
+            let status = response.status();
+            let error_text = response.text().await.unwrap_or_default();
+            return Err(crate::Error::from(format!(
+                "Deepgram API error ({}): {}",
+                status, error_text
+            )));
+        }
+
+        // Parse the response
+        let response_text = response
+            .text()
+            .await
+            .map_err(|e| crate::Error::from(format!("Failed to read response: {}", e)))?;
+
+        let response_json: serde_json::Value = serde_json::from_str(&response_text)
+            .map_err(|e| crate::Error::from(format!("Failed to parse JSON: {}", e)))?;
+
+        // Extract words from Deepgram response
+        let mut words = Vec::new();
+
+        if let Some(results) = response_json.get("results") {
+            if let Some(channels) = results.get("channels") {
+                if let Some(channel) = channels.get(0) {
+                    if let Some(alternatives) = channel.get("alternatives") {
+                        if let Some(first_alt) = alternatives.get(0) {
+                            // Try to get word-level timestamps
+                            if let Some(word_array) = first_alt.get("words") {
+                                if let Some(words_data) = word_array.as_array() {
+                                    for word_obj in words_data {
+                                        if let Some(word_text) = word_obj.get("word").and_then(|v| v.as_str()) {
+                                            let start_ms = word_obj
+                                                .get("start")
+                                                .and_then(|v| v.as_f64())
+                                                .map(|s| (s * 1000.0) as u64);
+                                            let end_ms = word_obj
+                                                .get("end")
+                                                .and_then(|v| v.as_f64())
+                                                .map(|e| (e * 1000.0) as u64);
+                                            let confidence = word_obj
+                                                .get("confidence")
+                                                .and_then(|v| v.as_f64())
+                                                .map(|c| c as f32);
+
+                                            words.push(Word2 {
+                                                text: word_text.to_string(),
+                                                speaker: None,
+                                                confidence,
+                                                start_ms,
+                                                end_ms,
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Fallback: if no words, segment the transcript
+                            if words.is_empty() {
+                                if let Some(transcript) = first_alt.get("transcript").and_then(|v| v.as_str()) {
+                                    if !transcript.is_empty() {
+                                        let confidence = first_alt
+                                            .get("confidence")
+                                            .and_then(|v| v.as_f64())
+                                            .map(|c| c as f32);
+
+                                        for text in segment_text(transcript) {
+                                            words.push(Word2 {
+                                                text,
+                                                speaker: None,
+                                                confidence,
+                                                start_ms: None,
+                                                end_ms: None,
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(words)
+    }
+
     pub async fn handle_websocket(
         self,
         ws: WebSocketUpgrade,

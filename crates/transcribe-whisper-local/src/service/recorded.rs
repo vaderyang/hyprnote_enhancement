@@ -3,6 +3,7 @@ use owhisper_interface::Word2;
 pub fn process_recorded(
     model_path: impl AsRef<std::path::Path>,
     audio_path: impl AsRef<std::path::Path>,
+    languages: Vec<hypr_language::Language>,
 ) -> Result<Vec<Word2>, crate::Error> {
     let samples = {
         use rodio::Source;
@@ -19,9 +20,15 @@ pub fn process_recorded(
         hypr_audio_utils::f32_to_i16_samples(&resampled_samples)
     };
 
+    // Convert hypr_language::Language to hypr_whisper::Language
+    let whisper_languages: Vec<hypr_whisper::Language> = languages
+        .into_iter()
+        .filter_map(|lang| lang.try_into().ok())
+        .collect();
+
     let mut model = hypr_whisper_local::Whisper::builder()
         .model_path(model_path.as_ref().to_str().unwrap())
-        .languages(vec![])
+        .languages(whisper_languages)
         .build()
         .unwrap();
 
