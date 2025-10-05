@@ -467,8 +467,8 @@ function RenderNotInMeetingEmpty({ sessionId, panelWidth }: { sessionId: string;
         return;
       }
 
-      // Ensure file is a string path
-      const filePath = typeof file === "string" ? file : file.path || String(file);
+      // File is already a string path from the dialog
+      const filePath = file;
       console.log("[Upload] File path to use:", filePath);
 
       // Determine which service will be used
