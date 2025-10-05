@@ -115,7 +115,14 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
         if matches!(provider, Provider::Local) {
             let local_model = self.get_local_model()?;
-            self.start_server(Some(local_model)).await?;
+            // Only start server if model is downloaded
+            let is_downloaded = self.is_model_downloaded(&local_model).await?;
+            if is_downloaded {
+                // Stop any running servers first to avoid "ServerAlreadyRunning" error
+                let _ = self.stop_server(None).await;
+                // Start the server with the selected model
+                self.start_server(Some(local_model)).await?;
+            }
         }
 
         Ok(())

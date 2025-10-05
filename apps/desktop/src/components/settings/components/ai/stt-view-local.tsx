@@ -308,9 +308,9 @@ function ModelEntry({
     if (isSelectable) {
       setSelectedSTTModel(model.key as SupportedSttModel);
       await localSttCommands.setLocalModel(model.key as SupportedSttModel);
+
+      // setProviderToLocal() will automatically restart the server with the new model
       setProviderToLocal();
-      await localSttCommands.stopServer(null);
-      await localSttCommands.startServer(null);
 
       if (userId) {
         const isProModel = model.key.startsWith("am-");

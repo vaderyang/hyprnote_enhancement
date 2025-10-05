@@ -14,7 +14,14 @@ pub enum StoreKey {
 }
 
 #[derive(
-    serde::Deserialize, serde::Serialize, specta::Type, PartialEq, Eq, Hash, strum::Display,
+    Debug,
+    serde::Deserialize,
+    serde::Serialize,
+    specta::Type,
+    PartialEq,
+    Eq,
+    Hash,
+    strum::Display,
 )]
 pub enum Provider {
     Local,

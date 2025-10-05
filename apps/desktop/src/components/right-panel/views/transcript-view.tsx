@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMatch } from "@tanstack/react-router";
+import { Channel } from "@tauri-apps/api/core";
 import { writeText as writeTextToClipboard } from "@tauri-apps/plugin-clipboard-manager";
 import { open } from "@tauri-apps/plugin-dialog";
 import clsx from "clsx";
@@ -35,6 +36,7 @@ import TranscriptEditor, {
 } from "@hypr/tiptap/transcript";
 import { Button } from "@hypr/ui/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/popover";
+import { Progress } from "@hypr/ui/components/ui/progress";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { cn } from "@hypr/ui/lib/utils";
 import { useOngoingSession } from "@hypr/utils/contexts";
@@ -413,12 +415,31 @@ function RenderNotInMeeting({ sessionId, words }: { sessionId: string; words: Wo
 function RenderNotInMeetingEmpty({ sessionId, panelWidth }: { sessionId: string; panelWidth: number }) {
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
+  const [transcriptionService, setTranscriptionService] = useState<string>("");
+  const [progress, setProgress] = useState(0);
 
   const ongoingSession = useOngoingSession((s) => ({
     start: s.start,
     status: s.status,
     loading: s.loading,
   }));
+
+  const providerQuery = useQuery(
+    {
+      queryKey: ["stt-provider"],
+      queryFn: () => localSttCommands.getProvider(),
+    },
+    queryClient,
+  );
+
+  const customBaseUrlQuery = useQuery(
+    {
+      queryKey: ["stt-custom-base-url"],
+      queryFn: () => localSttCommands.getCustomBaseUrl(),
+      enabled: providerQuery.data === "Custom",
+    },
+    queryClient,
+  );
 
   const handleStartRecording = () => {
     if (ongoingSession.status === "inactive") {
@@ -427,6 +448,7 @@ function RenderNotInMeetingEmpty({ sessionId, panelWidth }: { sessionId: string;
   };
 
   const handleUploadAudio = async () => {
+    console.log("[Upload] Starting audio upload flow");
     try {
       const file = await open({
         multiple: false,
@@ -437,22 +459,53 @@ function RenderNotInMeetingEmpty({ sessionId, panelWidth }: { sessionId: string;
         }],
       });
 
+      console.log("[Upload] File selected:", file);
+
       if (file) {
+        // Determine which service will be used
+        const provider = providerQuery.data ?? "Local";
+        const isNetis = provider === "Custom" && customBaseUrlQuery.data?.includes("netis.com.cn");
+        const serviceLabel = isNetis ? "Netis API" : provider === "Local" ? "Whisper Local" : "Custom API";
+
+        console.log("[Upload] Provider:", provider, "Service:", serviceLabel);
+
+        setTranscriptionService(serviceLabel);
         setUploading(true);
-        const words = await localSttCommands.transcribeAudioFile(file);
+        setProgress(0);
+
+        // Create channel for progress updates
+        const channel = new Channel<number>();
+        channel.onmessage = (progressValue) => {
+          console.log("[Upload] Progress:", progressValue);
+          setProgress(Math.max(0, Math.min(100, progressValue)));
+        };
+
+        console.log("[Upload] Calling transcribeAudioFile with file:", file);
+        const words = await localSttCommands.transcribeAudioFile(file, channel);
+        console.log("[Upload] Transcription completed, words count:", words.length);
 
         const session = await dbCommands.getSession({ id: sessionId });
+        console.log("[Upload] Session retrieved:", session?.id);
         if (session) {
           await dbCommands.upsertSession({ ...session, words });
+          console.log("[Upload] Session updated with words");
           queryClient.invalidateQueries({
             queryKey: ["session", "words", sessionId],
           });
+          console.log("[Upload] Query invalidated");
         }
         setUploading(false);
+        setTranscriptionService("");
+        setProgress(0);
+        console.log("[Upload] Upload flow completed successfully");
+      } else {
+        console.log("[Upload] No file selected");
       }
     } catch (error) {
-      console.error("Failed to transcribe audio file:", error);
+      console.error("[Upload] Failed to transcribe audio file:", error);
       setUploading(false);
+      setTranscriptionService("");
+      setProgress(0);
     }
   };
 
@@ -461,91 +514,122 @@ function RenderNotInMeetingEmpty({ sessionId, panelWidth }: { sessionId: string;
   const isNarrow = panelWidth < 400;
   const showFullText = panelWidth >= 400;
 
+  const serviceBgColor = transcriptionService === "Netis API" ? "bg-blue-50" : "bg-green-50";
+  const serviceTextColor = transcriptionService === "Netis API" ? "text-blue-700" : "text-green-700";
+  const serviceBorderColor = transcriptionService === "Netis API" ? "border-blue-200" : "border-green-200";
+
   return (
     <div className="flex-1 flex items-center justify-center">
       <div className="text-neutral-500 font-medium text-center">
-        <div
-          className={`mb-6 text-neutral-600 flex ${isNarrow ? "flex-col" : "flex-row"} items-center ${
-            isNarrow ? "gap-2" : "gap-1.5"
-          }`}
-        >
-          <Button
-            size="sm"
-            onClick={handleStartRecording}
-            className={isUltraCompact ? "px-3" : ""}
-            title={isUltraCompact ? (ongoingSession.loading ? "Starting..." : "Start recording") : undefined}
-          >
-            {ongoingSession.loading ? <Spinner color="black" /> : (
-              <div className="relative h-2 w-2">
-                <div className="absolute inset-0 rounded-full bg-red-500"></div>
-                <div className="absolute inset-0 rounded-full bg-red-400 animate-ping"></div>
+        {uploading && transcriptionService && (
+          <div className="mb-6 flex flex-col items-center gap-4 w-full max-w-md px-4">
+            <div
+              className={cn(
+                "inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium border shadow-sm",
+                serviceBgColor,
+                serviceTextColor,
+                serviceBorderColor,
+              )}
+            >
+              <AudioLinesIcon className="w-4 h-4" />
+              <span className="font-semibold">Transcribing with {transcriptionService}</span>
+            </div>
+            <div className="w-full space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-neutral-600">Processing audio file...</span>
+                <span className="font-semibold text-neutral-900">{progress}%</span>
               </div>
-            )}
-            {!isUltraCompact && (
-              <span className="ml-2">
-                {ongoingSession.loading ? "Starting..." : "Start recording"}
-              </span>
-            )}
-          </Button>
-          {showFullText && <span className="text-sm">to see live transcript</span>}
-        </div>
+              <Progress value={progress} className="h-2" />
+            </div>
+          </div>
+        )}
 
-        <div
-          className={clsx([
-            "flex items-center justify-center mb-4",
-            isUltraCompact ? "w-full" : "w-full max-w-[240px]",
-          ])}
-        >
-          <div className="h-px bg-neutral-200 flex-grow"></div>
-          <span className="px-3 text-xs text-neutral-400 font-medium">or</span>
-          <div className="h-px bg-neutral-200 flex-grow"></div>
-        </div>
+        {!uploading && (
+          <>
+            <div
+              className={`mb-6 text-neutral-600 flex ${isNarrow ? "flex-col" : "flex-row"} items-center ${
+                isNarrow ? "gap-2" : "gap-1.5"
+              }`}
+            >
+              <Button
+                size="sm"
+                onClick={handleStartRecording}
+                className={isUltraCompact ? "px-3" : ""}
+                title={isUltraCompact ? (ongoingSession.loading ? "Starting..." : "Start recording") : undefined}
+              >
+                {ongoingSession.loading ? <Spinner color="black" /> : (
+                  <div className="relative h-2 w-2">
+                    <div className="absolute inset-0 rounded-full bg-red-500"></div>
+                    <div className="absolute inset-0 rounded-full bg-red-400 animate-ping"></div>
+                  </div>
+                )}
+                {!isUltraCompact && (
+                  <span className="ml-2">
+                    {ongoingSession.loading ? "Starting..." : "Start recording"}
+                  </span>
+                )}
+              </Button>
+              {showFullText && <span className="text-sm">to see live transcript</span>}
+            </div>
 
-        <div className="flex flex-col gap-2">
-          {isUltraCompact
-            ? (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="hover:bg-neutral-100"
-                  disabled={uploading}
-                  onClick={handleUploadAudio}
-                  title="Upload recording"
-                >
-                  {uploading ? <Spinner color="black" /> : <UploadIcon size={14} />}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="hover:bg-neutral-100"
-                  disabled
-                  title="Paste transcript"
-                >
-                  <ClipboardIcon size={14} />
-                </Button>
-              </>
-            )
-            : (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="hover:bg-neutral-100"
-                  disabled={uploading}
-                  onClick={handleUploadAudio}
-                >
-                  {uploading ? <Spinner color="black" /> : <UploadIcon size={14} />}
-                  {uploading ? "Transcribing..." : isVeryNarrow ? "Upload" : "Upload recording"}
-                </Button>
-                <Button variant="outline" size="sm" className="hover:bg-neutral-100" disabled>
-                  <ClipboardIcon size={14} />
-                  {isVeryNarrow ? "Paste" : "Paste transcript"}
-                  {!isNarrow && <span className="text-xs text-neutral-400 italic ml-1">coming soon</span>}
-                </Button>
-              </>
-            )}
-        </div>
+            <div
+              className={clsx([
+                "flex items-center justify-center mb-4",
+                isUltraCompact ? "w-full" : "w-full max-w-[240px]",
+              ])}
+            >
+              <div className="h-px bg-neutral-200 flex-grow"></div>
+              <span className="px-3 text-xs text-neutral-400 font-medium">or</span>
+              <div className="h-px bg-neutral-200 flex-grow"></div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              {isUltraCompact
+                ? (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="hover:bg-neutral-100"
+                      disabled={uploading}
+                      onClick={handleUploadAudio}
+                      title="Upload recording"
+                    >
+                      <UploadIcon size={14} />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="hover:bg-neutral-100"
+                      disabled
+                      title="Paste transcript"
+                    >
+                      <ClipboardIcon size={14} />
+                    </Button>
+                  </>
+                )
+                : (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="hover:bg-neutral-100"
+                      disabled={uploading}
+                      onClick={handleUploadAudio}
+                    >
+                      <UploadIcon size={14} />
+                      {isVeryNarrow ? "Upload" : "Upload recording"}
+                    </Button>
+                    <Button variant="outline" size="sm" className="hover:bg-neutral-100" disabled>
+                      <ClipboardIcon size={14} />
+                      {isVeryNarrow ? "Paste" : "Paste transcript"}
+                      {!isNarrow && <span className="text-xs text-neutral-400 italic ml-1">coming soon</span>}
+                    </Button>
+                  </>
+                )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

@@ -67,8 +67,8 @@ async getCustomModel() : Promise<SupportedSttModel | null> {
 async setCustomModel(model: SupportedSttModel) : Promise<null> {
     return await TAURI_INVOKE("plugin:local-stt|set_custom_model", { model });
 },
-async transcribeAudioFile(filePath: string) : Promise<Word2[]> {
-    return await TAURI_INVOKE("plugin:local-stt|transcribe_audio_file", { filePath });
+async transcribeAudioFile(filePath: string, channel: TAURI_CHANNEL<number>) : Promise<Word2[]> {
+    return await TAURI_INVOKE("plugin:local-stt|transcribe_audio_file", { filePath, channel });
 }
 }
 

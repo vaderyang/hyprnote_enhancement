@@ -181,15 +181,26 @@ pub fn set_custom_model<R: tauri::Runtime>(
 pub async fn transcribe_audio_file<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     file_path: String,
+    channel: Channel<i8>,
 ) -> Result<Vec<owhisper_interface::Word2>, String> {
+    tracing::info!("transcribe_audio_file called with file: {}", file_path);
+
     let provider = app.get_provider().map_err(|e| e.to_string())?;
+    tracing::info!("Provider: {:?}", provider);
 
     match provider {
         crate::Provider::Custom => {
+            tracing::info!("Using Custom provider (Deepgram/Netis)");
             // Use custom endpoint (Deepgram REST API)
+            let _ = channel.send(10);
+
             let base_url = app.get_custom_base_url().map_err(|e| e.to_string())?;
             let api_key = app.get_custom_api_key().map_err(|e| e.to_string())?;
             let custom_model = app.get_custom_model().map_err(|e| e.to_string())?;
+
+            tracing::info!("Custom config - base_url: {}, model: {:?}", base_url, custom_model);
+
+            let _ = channel.send(20);
 
             // Get jargons from general config for custom vocabulary
             let keywords = {
@@ -211,32 +222,53 @@ pub async fn transcribe_audio_file<R: tauri::Runtime>(
                 }
             };
 
+            let _ = channel.send(30);
+
             let config = owhisper_config::DeepgramModelConfig {
-                base_url: Some(base_url),
+                base_url: Some(base_url.clone()),
                 api_key,
                 ..Default::default()
             };
 
             let model_name = custom_model.map(|m| m.to_string());
 
-            hypr_transcribe_deepgram::TranscribeService::transcribe_file(
+            tracing::info!("Preparing to call Deepgram API with model: {:?}, keywords: {:?}", model_name, keywords);
+            let _ = channel.send(50);
+
+            let result = hypr_transcribe_deepgram::TranscribeService::transcribe_file(
                 config,
-                file_path,
+                file_path.clone(),
                 model_name,
                 Some("multi".to_string()),
                 keywords,
             )
             .await
-            .map_err(|e| e.to_string())
+            .map_err(|e| {
+                tracing::error!("Deepgram transcription failed: {}", e);
+                e.to_string()
+            })?;
+
+            tracing::info!("Deepgram transcription succeeded, words count: {}", result.len());
+            let _ = channel.send(100);
+
+            Ok(result)
         }
         crate::Provider::Local => {
+            tracing::info!("Using Local Whisper provider");
             // Use local Whisper model
+            let _ = channel.send(10);
+
             let model = app.get_local_model().map_err(|e| e.to_string())?;
+            tracing::info!("Local model: {:?}", model);
+
+            let _ = channel.send(15);
 
             let model_path = match model {
                 SupportedSttModel::Whisper(whisper_model) => {
                     let path = app.models_dir().join(whisper_model.file_name());
+                    tracing::info!("Whisper model path: {:?}", path);
                     if !path.exists() {
+                        tracing::error!("Whisper model not found at: {:?}", path);
                         return Err(
                             "Whisper model not downloaded. Please download the model first."
                                 .to_string(),
@@ -245,12 +277,15 @@ pub async fn transcribe_audio_file<R: tauri::Runtime>(
                     path
                 }
                 _ => {
+                    tracing::error!("Unsupported model type for local transcription: {:?}", model);
                     return Err(
                         "Only Whisper models are currently supported for local audio file transcription."
                             .to_string(),
                     );
                 }
             };
+
+            let _ = channel.send(25);
 
             // Get spoken languages from general config
             let languages = {
@@ -267,8 +302,20 @@ pub async fn transcribe_audio_file<R: tauri::Runtime>(
                 }
             };
 
-            hypr_transcribe_whisper_local::process_recorded(model_path, file_path, languages)
-                .map_err(|e| e.to_string())
+            tracing::info!("Transcribing with languages: {:?}", languages);
+            let _ = channel.send(40);
+
+            tracing::info!("Starting local Whisper transcription for file: {}", file_path);
+            let result = hypr_transcribe_whisper_local::process_recorded(model_path, file_path.clone(), languages)
+                .map_err(|e| {
+                    tracing::error!("Local Whisper transcription failed: {}", e);
+                    e.to_string()
+                })?;
+
+            tracing::info!("Local Whisper transcription succeeded, words count: {}", result.len());
+            let _ = channel.send(100);
+
+            Ok(result)
         }
     }
 }
