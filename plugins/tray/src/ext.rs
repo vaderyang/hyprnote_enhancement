@@ -180,24 +180,16 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
                         }
                     }
                     HyprMenuItem::DevToolsOpen => {
-                        if let Some(window) = app.get_webview_window("main") {
-                            #[cfg(debug_assertions)]
-                            {
-                                if window.is_devtools_open() {
-                                    let _ = window.close_devtools();
-                                } else {
-                                    let _ = window.open_devtools();
-                                }
+                        #[cfg(debug_assertions)]
+                        {
+                            if let Some(window) = app.get_webview_window("main") {
+                                // Simply open devtools - Tauri will toggle if already open
+                                let _ = window.open_devtools();
                             }
-                            #[cfg(not(debug_assertions))]
-                            {
-                                // In release builds, still try to open devtools if feature is enabled
-                                if window.is_devtools_open() {
-                                    let _ = window.close_devtools();
-                                } else {
-                                    let _ = window.open_devtools();
-                                }
-                            }
+                        }
+                        #[cfg(not(debug_assertions))]
+                        {
+                            tracing::warn!("DevTools are not available in release builds");
                         }
                     }
                 }
