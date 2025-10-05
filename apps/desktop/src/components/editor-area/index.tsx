@@ -73,6 +73,18 @@ async function generateTitleDirect(
   onboardingSessionId: string,
 ) {
   try {
+    // Check word count at generation time, not at component mount
+    const session = await dbCommands.getSession({ id: targetSessionId });
+    const wordCount = countWordsFromWordArray(session?.words ?? []);
+    const minWordCount = import.meta.env.DEV ? 5 : 100;
+    
+    console.log(`🎯 TITLE GENERATION CHECK - Session: ${targetSessionId}, Word count: ${wordCount}, Min required: ${minWordCount}`);
+    
+    if (wordCount <= minWordCount) {
+      console.log(`⏭️  TITLE GENERATION SKIPPED - Not enough words (${wordCount} <= ${minWordCount})`);
+      return;
+    }
+    
     const config = await dbCommands.getConfig();
     // Extract plain text from HTML for cleaner title generation
     const plainTextContent = extractTextFromHtml(enhancedContent);
@@ -107,10 +119,13 @@ async function generateTitleDirect(
 
     console.log("✅ Generated title:", text);
 
-    const session = await dbCommands.getSession({ id: targetSessionId });
+    // Check if session already has a title
     if (!session?.title && sessions[targetSessionId]?.getState) {
       const cleanedTitle = text.replace(/^["']|["']$/g, "").trim();
+      console.log(`📝 Updating session title to: "${cleanedTitle}"`);
       sessions[targetSessionId].getState().updateTitle(cleanedTitle);
+    } else {
+      console.log(`⏭️  TITLE UPDATE SKIPPED - Session already has a title: "${session?.title}"`);
     }
   } catch (error) {
     console.error("❌ Title generation failed:", error);
@@ -203,10 +218,6 @@ export default function EditorArea({
   });
 
   const preMeetingNote = useSession(sessionId, (s) => s.session.pre_meeting_memo_html) ?? "";
-  const hasTranscriptWords = useSession(sessionId, (s) => {
-    const wordCount = countWordsFromWordArray(s.session.words);
-    return wordCount > (import.meta.env.DEV ? 5 : 100);
-  });
 
   const llmConnectionQuery = useQuery({
     queryKey: ["llm-connection"],
@@ -222,9 +233,8 @@ export default function EditorArea({
     rawContent,
     isLocalLlm: llmConnectionQuery.data?.type === "HyprLocal",
     onSuccess: (content) => {
-      if (hasTranscriptWords) {
-        generateTitleDirect(content, sessionId, sessionsStore, queryClient, onboardingSessionId).catch(console.error);
-      }
+      // Always attempt title generation - it will check word count internally
+      generateTitleDirect(content, sessionId, sessionsStore, queryClient, onboardingSessionId).catch(console.error);
 
       if (sessionId !== onboardingSessionId) {
         setTimeout(async () => {
