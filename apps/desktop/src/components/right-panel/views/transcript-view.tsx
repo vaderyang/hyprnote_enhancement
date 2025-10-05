@@ -460,49 +460,56 @@ function RenderNotInMeetingEmpty({ sessionId, panelWidth }: { sessionId: string;
       });
 
       console.log("[Upload] File selected:", file);
+      console.log("[Upload] File type:", typeof file);
 
-      if (file) {
-        // Determine which service will be used
-        const provider = providerQuery.data ?? "Local";
-        const isNetis = provider === "Custom" && customBaseUrlQuery.data?.includes("netis.com.cn");
-        const serviceLabel = isNetis ? "Netis API" : provider === "Local" ? "Whisper Local" : "Custom API";
-
-        console.log("[Upload] Provider:", provider, "Service:", serviceLabel);
-
-        setTranscriptionService(serviceLabel);
-        setUploading(true);
-        setProgress(0);
-
-        // Create channel for progress updates
-        const channel = new Channel<number>();
-        channel.onmessage = (progressValue) => {
-          console.log("[Upload] Progress:", progressValue);
-          setProgress(Math.max(0, Math.min(100, progressValue)));
-        };
-
-        console.log("[Upload] Calling transcribeAudioFile with file:", file);
-        const words = await localSttCommands.transcribeAudioFile(file, channel);
-        console.log("[Upload] Transcription completed, words count:", words.length);
-
-        const session = await dbCommands.getSession({ id: sessionId });
-        console.log("[Upload] Session retrieved:", session?.id);
-        if (session) {
-          await dbCommands.upsertSession({ ...session, words });
-          console.log("[Upload] Session updated with words");
-          queryClient.invalidateQueries({
-            queryKey: ["session", "words", sessionId],
-          });
-          console.log("[Upload] Query invalidated");
-        }
-        setUploading(false);
-        setTranscriptionService("");
-        setProgress(0);
-        console.log("[Upload] Upload flow completed successfully");
-      } else {
-        console.log("[Upload] No file selected");
+      if (!file) {
+        console.log("[Upload] No file selected (file is null/undefined)");
+        return;
       }
+
+      // Ensure file is a string path
+      const filePath = typeof file === "string" ? file : file.path || String(file);
+      console.log("[Upload] File path to use:", filePath);
+
+      // Determine which service will be used
+      const provider = providerQuery.data ?? "Local";
+      const isNetis = provider === "Custom" && customBaseUrlQuery.data?.includes("netis.com.cn");
+      const serviceLabel = isNetis ? "Netis API" : provider === "Local" ? "Whisper Local" : "Custom API";
+
+      console.log("[Upload] Provider:", provider, "Service:", serviceLabel);
+
+      setTranscriptionService(serviceLabel);
+      setUploading(true);
+      setProgress(0);
+
+      // Create channel for progress updates
+      const channel = new Channel<number>();
+      channel.onmessage = (progressValue) => {
+        console.log("[Upload] Progress:", progressValue);
+        setProgress(Math.max(0, Math.min(100, progressValue)));
+      };
+
+      console.log("[Upload] Calling transcribeAudioFile with filePath:", filePath);
+      const words = await localSttCommands.transcribeAudioFile(filePath, channel);
+      console.log("[Upload] Transcription completed, words count:", words.length);
+
+      const session = await dbCommands.getSession({ id: sessionId });
+      console.log("[Upload] Session retrieved:", session?.id);
+      if (session) {
+        await dbCommands.upsertSession({ ...session, words });
+        console.log("[Upload] Session updated with words");
+        queryClient.invalidateQueries({
+          queryKey: ["session", "words", sessionId],
+        });
+        console.log("[Upload] Query invalidated");
+      }
+      setUploading(false);
+      setTranscriptionService("");
+      setProgress(0);
+      console.log("[Upload] Upload flow completed successfully");
     } catch (error) {
       console.error("[Upload] Failed to transcribe audio file:", error);
+      console.error("[Upload] Error stack:", error instanceof Error ? error.stack : "No stack trace");
       setUploading(false);
       setTranscriptionService("");
       setProgress(0);
