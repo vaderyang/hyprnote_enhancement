@@ -1,8 +1,8 @@
 use tauri::{
     image::Image,
-    menu::{Menu, MenuId, MenuItem, MenuItemKind, PredefinedMenuItem},
+    menu::{Menu, MenuId, MenuItem, MenuItemKind, PredefinedMenuItem, Submenu},
     tray::TrayIconBuilder,
-    AppHandle, Result,
+    AppHandle, Result, Manager,
 };
 
 use tauri_plugin_clipboard_manager::ClipboardExt;
@@ -18,6 +18,7 @@ pub enum HyprMenuItem {
     TrayQuit,
     AppInfo,
     AppNew,
+    DevToolsOpen,
 }
 
 impl From<HyprMenuItem> for MenuId {
@@ -28,6 +29,7 @@ impl From<HyprMenuItem> for MenuId {
             HyprMenuItem::TrayQuit => "hypr_tray_quit",
             HyprMenuItem::AppInfo => "hypr_app_info",
             HyprMenuItem::AppNew => "hypr_app_new",
+            HyprMenuItem::DevToolsOpen => "hypr_devtools_open",
         }
         .into()
     }
@@ -42,6 +44,7 @@ impl From<MenuId> for HyprMenuItem {
             "hypr_tray_quit" => HyprMenuItem::TrayQuit,
             "hypr_app_info" => HyprMenuItem::AppInfo,
             "hypr_app_new" => HyprMenuItem::AppNew,
+            "hypr_devtools_open" => HyprMenuItem::DevToolsOpen,
             _ => unreachable!(),
         }
     }
@@ -68,16 +71,18 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
                     if let MenuItemKind::Submenu(submenu) = &items[0] {
                         submenu.remove_at(0)?;
                         submenu.prepend(&info_item)?;
-                        return Ok(());
                     }
                 }
 
                 if items.len() > 1 {
                     if let MenuItemKind::Submenu(submenu) = &items[1] {
                         submenu.prepend(&new_item)?;
-                        return Ok(());
                     }
                 }
+
+                // Add Developer menu after the existing menus
+                let developer_menu = create_developer_menu(app)?;
+                menu.append(&developer_menu)?;
             }
         }
 
@@ -174,6 +179,27 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
                             );
                         }
                     }
+                    HyprMenuItem::DevToolsOpen => {
+                        if let Some(window) = app.get_webview_window("main") {
+                            #[cfg(debug_assertions)]
+                            {
+                                if window.is_devtools_open() {
+                                    let _ = window.close_devtools();
+                                } else {
+                                    let _ = window.open_devtools();
+                                }
+                            }
+                            #[cfg(not(debug_assertions))]
+                            {
+                                // In release builds, still try to open devtools if feature is enabled
+                                if window.is_devtools_open() {
+                                    let _ = window.close_devtools();
+                                } else {
+                                    let _ = window.open_devtools();
+                                }
+                            }
+                        }
+                    }
                 }
             })
             .build(app)?;
@@ -250,4 +276,16 @@ fn tray_quit_menu<R: tauri::Runtime>(app: &AppHandle<R>) -> Result<MenuItem<R>> 
         true,
         Some("cmd+q"),
     )
+}
+
+fn create_developer_menu<R: tauri::Runtime>(app: &AppHandle<R>) -> Result<Submenu<R>> {
+    let devtools_item = MenuItem::with_id(
+        app,
+        HyprMenuItem::DevToolsOpen,
+        "Toggle Developer Tools",
+        true,
+        Some("CmdOrCtrl+Shift+I"),
+    )?;
+
+    Submenu::with_items(app, "Developer", true, &[&devtools_item])
 }
