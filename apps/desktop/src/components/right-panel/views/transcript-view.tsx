@@ -40,7 +40,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@hypr/ui/components/ui/
 import { Progress } from "@hypr/ui/components/ui/progress";
 import { Spinner } from "@hypr/ui/components/ui/spinner";
 import { Textarea } from "@hypr/ui/components/ui/textarea";
-import { cn } from "@hypimport { useRightPanel } from "@/contexts/right-panel";
+import { cn } from "@hypr/ui/lib/utils";
+import { useOngoingSession } from "@hypr/utils/contexts";
+import { SearchHeader } from "../components/search-header";
+import { useTranscript } from "../hooks/useTranscript";
+import { useRightPanel } from "@/contexts/right-panel";
 
 // Helper to convert plain text to Word2 array
 function plainTextToWords(text: string): Word2[] {
