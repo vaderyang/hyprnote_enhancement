@@ -44,6 +44,8 @@ const getModel = async ({ onboarding }: { onboarding: boolean }) => {
   const getter = onboarding ? connectorCommands.getLocalLlmConnection : connectorCommands.getLlmConnection;
   const { type, connection: { api_base, api_key } } = await getter();
 
+  console.log(`🔑 LLM Connection Debug - Type: ${type}, API Base: ${api_base}, Has API Key: ${!!api_key}`);
+
   if (!api_base) {
     throw new Error("no_api_base");
   }
@@ -63,7 +65,7 @@ const getModel = async ({ onboarding }: { onboarding: boolean }) => {
     ? "mock-onboarding"
     : (type === "Custom" && customModel)
     ? customModel
-    : "gpt-4";
+    : "qwen-3-coder-480b";
 
   return wrapLanguageModel({
     model: openai(id),

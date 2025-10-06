@@ -520,6 +520,7 @@ export function useEnhanceMutation({
   const getCurrentEnhancedContent = useSession(sessionId, (s) => s.session?.enhanced_memo_html ?? "");
 
   const originalContentRef = useRef<string>("");
+  const usedTemplateIdRef = useRef<string | null>(null);
 
   const enhance = useMutation({
     mutationKey: ["enhance", sessionId],
@@ -570,6 +571,9 @@ export function useEnhanceMutation({
 
       // Use canonical template ID (handles legacy mappings)
       const canonicalTemplateId = TemplateService.getCanonicalTemplateId(effectiveTemplateId);
+      
+      // Store the template ID for later tagging
+      usedTemplateIdRef.current = canonicalTemplateId;
       
       const selectedTemplate = await TemplateService.getTemplate(canonicalTemplateId);
       let contextText = "";
@@ -702,7 +706,7 @@ export function useEnhanceMutation({
 
       return text.then(miscCommands.opinionatedMdToHtml);
     },
-    onSuccess: (enhancedContent: string | undefined) => {
+    onSuccess: async (enhancedContent: string | undefined) => {
       setIsCancelled(false);
       onSuccess(enhancedContent ?? "");
 
@@ -715,6 +719,39 @@ export function useEnhanceMutation({
       }
 
       setEnhanceController(null);
+      
+      // Add template name as tag if a template was used
+      if (usedTemplateIdRef.current && sessionId !== onboardingSessionId) {
+        try {
+          const template = await TemplateService.getTemplate(usedTemplateIdRef.current);
+          if (template && template.title) {
+            // Extract template name (remove emoji if present)
+            const templateName = template.title.replace(/^[\u{1F300}-\u{1F9FF}]\s*/u, "").trim();
+            
+            console.log(`🏷️  Adding template tag: ${templateName}`);
+            
+            // Get all existing tags
+            const allTags = await dbCommands.listAllTags();
+            const existingTag = allTags.find(tag => tag.name.toLowerCase() === templateName.toLowerCase());
+            
+            // Upsert the tag
+            const tag = await dbCommands.upsertTag({
+              id: existingTag?.id || crypto.randomUUID(),
+              name: templateName,
+            });
+            
+            // Assign tag to session
+            await dbCommands.assignTagToSession(tag.id, sessionId);
+            
+            // Invalidate tag queries to refresh UI
+            queryClient.invalidateQueries({ queryKey: ["session-tags", sessionId] });
+          }
+        } catch (error) {
+          console.error("Failed to add template tag:", error);
+        } finally {
+          usedTemplateIdRef.current = null;
+        }
+      }
     },
     onError: (error) => {
       console.error(error);
@@ -788,7 +825,7 @@ function useAutoEnhance({
 }: {
   sessionId: string;
   enhanceStatus: string;
-  enhanceMutate: (params: { triggerType: "auto"; templateId?: string | null }) => void;
+  enhanceMutate: (params: { templateId?: string | null }) => void;
   setIsClassifyingTemplate: (value: boolean) => void;
 }) {
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
@@ -853,7 +890,6 @@ function useAutoEnhance({
             
             // Trigger enhancement
             enhanceMutate({
-              triggerType: "auto",
               templateId: classifiedTemplateId,
             });
           })
@@ -869,7 +905,6 @@ function useAutoEnhance({
             // Fallback to Running Log
             setAutoEnhanceTemplate(RUNNING_LOG_ID);
             enhanceMutate({
-              triggerType: "auto",
               templateId: RUNNING_LOG_ID,
             });
           })
@@ -882,7 +917,6 @@ function useAutoEnhance({
       } else {
         // Use manually selected template or pre-set autoEnhanceTemplate
         enhanceMutate({
-          triggerType: "auto",
           templateId: autoEnhanceTemplate,
         });
         
@@ -932,7 +966,6 @@ function useAutoEnhance({
       if (enhanceStatus !== "pending") {
         const resolvedTemplateId = TemplateService.getCanonicalTemplateId(currentTemplateId);
         enhanceMutate({
-          triggerType: "auto",
           templateId: resolvedTemplateId,
         });
       }
