@@ -2,6 +2,16 @@ import type { Template } from "@hypr/plugin-db";
 
 export const DEFAULT_TEMPLATES: Template[] = [
   {
+    id: "default-running-log",
+    user_id: "system",
+    title: "📋 Running Log",
+    description:
+      "Plain chronological notes without structured sections. Perfect for free-form meetings, casual conversations, or when you want minimal organization.",
+    sections: [],
+    tags: ["general", "chronological", "unstructured", "simple", "builtin"],
+    context_option: null,
+  },
+  {
     id: "default-meeting-notes",
     user_id: "system",
     title: "📝 General Meeting",
