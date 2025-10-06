@@ -538,7 +538,7 @@ export function useEnhanceMutation({
 
       const getWordsFunc = sessionId === onboardingSessionId ? dbCommands.getWordsOnboarding : dbCommands.getWords;
 
-      const [{ type, connection }, config, words] = await Promise.all([
+      const [{ type }, config, words] = await Promise.all([
         connectorCommands.getLlmConnection(),
         dbCommands.getConfig(),
         getWordsFunc(sessionId),
@@ -633,8 +633,6 @@ export function useEnhanceMutation({
       const model = sessionId === onboardingSessionId
         ? provider.languageModel("onboardingModel")
         : provider.languageModel("defaultModel");
-
-      const isHyprCloud = type !== "HyprLocal" && connection && connection.api_base.includes("pro.hyprnote.com");
 
       if (sessionId !== onboardingSessionId) {
         // Analytics removed

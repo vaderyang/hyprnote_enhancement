@@ -61,6 +61,9 @@ importers:
       '@huggingface/languages':
         specifier: ^1.0.0
         version: 1.0.0
+      '@hypr/plugin-analytics':
+        specifier: workspace:^
+        version: link:../../plugins/analytics
       '@hypr/plugin-apple-calendar':
         specifier: workspace:^
         version: link:../../plugins/apple-calendar
