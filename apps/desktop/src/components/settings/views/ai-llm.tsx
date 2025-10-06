@@ -449,7 +449,7 @@ export default function LlmAI() {
     } else if (config.provider === "openrouter" && config.api_key) {
       setOpenrouterApiKeyMutation.mutate(config.api_key);
       setOpenrouterModelMutation.mutate(config.model);
-    } else if (config.provider === "others") {
+    } else if (config.provider === "others" || config.provider === "netis-global") {
       setOthersApiBaseMutation.mutate(config.api_base);
       setOthersApiKeyMutation.mutate(config.api_key || "");
       setOthersModelMutation.mutate(config.model);

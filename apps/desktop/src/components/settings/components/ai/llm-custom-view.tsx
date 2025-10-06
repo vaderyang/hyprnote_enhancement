@@ -167,6 +167,18 @@ export function LLMCustomView({
   const netisGlobalApiKey = import.meta.env.VITE_NETIS_GLOBAL_API_KEY || "";
   const [netisGlobalSelectedModel, setNetisGlobalSelectedModel] = useState("qwen3-coder-480b");
 
+  // Restore Netis Global model from saved settings when accordion opens
+  useEffect(() => {
+    if (openAccordion === "netis-global" && customLLMEnabled.data) {
+      // Check if we have saved "others" settings that match Netis Global endpoint
+      const savedApiBase = customForm.watch("api_base");
+      const savedModel = customForm.watch("model");
+      if (savedApiBase === netisGlobalApiBase && savedModel) {
+        setNetisGlobalSelectedModel(savedModel);
+      }
+    }
+  }, [openAccordion, customLLMEnabled.data, customForm, netisGlobalApiBase]);
+
   // Fetch Netis Global models
   const netisGlobalModels = useQuery({
     queryKey: ["netis-global-models"],
@@ -216,13 +228,13 @@ export function LLMCustomView({
     if (openAccordion === "netis-global" && netisGlobalSelectedModel) {
       setHyprCloudEnabledMutation.mutate(false);
       configureCustomEndpoint({
-        provider: "others",
+        provider: "netis-global",
         api_base: netisGlobalApiBase,
         api_key: netisGlobalApiKey,
         model: netisGlobalSelectedModel,
       });
     }
-  }, [netisGlobalSelectedModel, openAccordion]);
+  }, [netisGlobalSelectedModel, openAccordion, configureCustomEndpoint, setHyprCloudEnabledMutation, netisGlobalApiBase, netisGlobalApiKey]);
 
   // temporary fix for fetching models smoothly
   const [debouncedApiBase, setDebouncedApiBase] = useState("");

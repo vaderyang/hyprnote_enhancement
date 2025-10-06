@@ -61,7 +61,7 @@ export interface STTModel {
 }
 
 export type ConfigureEndpointConfig = {
-  provider: "others" | "openai" | "gemini" | "openrouter" | "hyprcloud";
+  provider: "others" | "openai" | "gemini" | "openrouter" | "hyprcloud" | "netis-global";
   api_base: string;
   api_key?: string;
   model: string;
