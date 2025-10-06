@@ -136,7 +136,7 @@ export default function LlmAI() {
     });
   }, []);
 
-  const [openAccordion, setOpenAccordion] = useState<"others" | "openai" | "gemini" | "openrouter" | null>(null);
+  const [openAccordion, setOpenAccordion] = useState<"others" | "openai" | "gemini" | "openrouter" | "netis-global" | null>(null);
 
   const { userId } = useHypr();
 
@@ -380,8 +380,8 @@ export default function LlmAI() {
 
     if (providerSourceQuery.data) {
       // Only set accordion if it's a valid custom provider
-      if (["openai", "gemini", "openrouter", "others"].includes(providerSourceQuery.data)) {
-        setOpenAccordion(providerSourceQuery.data as "openai" | "gemini" | "openrouter" | "others");
+      if (["openai", "gemini", "openrouter", "others", "netis-global"].includes(providerSourceQuery.data)) {
+        setOpenAccordion(providerSourceQuery.data as "openai" | "gemini" | "openrouter" | "others" | "netis-global");
       }
     } else {
       // Only clear accordion if custom LLM is disabled

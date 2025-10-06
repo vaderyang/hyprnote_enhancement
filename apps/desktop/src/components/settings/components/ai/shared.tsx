@@ -115,7 +115,7 @@ export interface SharedLLMProps {
   // Model State
   downloadingModels: Set<string>;
   llmModelsState: LLMModel[];
-  setOpenAccordion: (accordion: "others" | "openai" | "gemini" | "openrouter" | null) => void;
+  setOpenAccordion: (accordion: "others" | "openai" | "gemini" | "openrouter" | "netis-global" | null) => void;
   // Functions
   handleModelDownload: (modelKey: string) => Promise<void>;
 }
@@ -125,8 +125,8 @@ export interface SharedCustomEndpointProps extends SharedLLMProps {
   configureCustomEndpoint: (config: ConfigureEndpointConfig) => void;
 
   // Accordion State
-  openAccordion: "others" | "openai" | "gemini" | "openrouter" | null;
-  setOpenAccordion: (accordion: "others" | "openai" | "gemini" | "openrouter" | null) => void;
+  openAccordion: "others" | "openai" | "gemini" | "openrouter" | "netis-global" | null;
+  setOpenAccordion: (accordion: "others" | "openai" | "gemini" | "openrouter" | "netis-global" | null) => void;
 
   // Queries
   customLLMConnection: UseQueryResult<Connection | null>;

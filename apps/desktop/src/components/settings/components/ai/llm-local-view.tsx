@@ -13,7 +13,7 @@ import { cn } from "@hypr/ui/lib/utils";
 import { type LLMModel, SharedLLMProps } from "./shared";
 
 interface ExtendedSharedLLMProps extends SharedLLMProps {
-  setOpenAccordion: (accordion: "others" | "openai" | "gemini" | "openrouter" | null) => void;
+  setOpenAccordion: (accordion: "others" | "openai" | "gemini" | "openrouter" | "netis-global" | null) => void;
 }
 
 export function LLMLocalView({
