@@ -3,6 +3,7 @@ import { getClassifiableTemplates, type ClassifiableTemplate } from "./templateO
 import { RUNNING_LOG_ID } from "@/utils/template-service";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { modelProvider } from "@hypr/utils/ai";
+import { getClassifierConfig } from "./classifierConfig";
 
 /**
  * Input for template classification
@@ -28,10 +29,8 @@ export interface ClassificationResult {
   reason: string;
 }
 
-const DEFAULT_TIMEOUT_MS = 4500;
 const TRANSCRIPT_PREVIEW_LENGTH = 2000; // characters
 const TRANSCRIPT_TAIL_LENGTH = 500;
-const CONFIDENCE_THRESHOLD = 0.5; // Minimum confidence to accept classification
 
 /**
  * Classify which template best fits the meeting content
@@ -40,7 +39,8 @@ const CONFIDENCE_THRESHOLD = 0.5; // Minimum confidence to accept classification
 export async function classifyTemplate(
   input: ClassificationInput
 ): Promise<ClassificationResult> {
-  const timeoutMs = input.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const config = getClassifierConfig();
+  const timeoutMs = input.timeoutMs ?? config.timeoutMs;
   
   try {
     // Prepare context with high priority on calendar data
@@ -81,8 +81,8 @@ export async function classifyTemplate(
     console.log("📋 Template classification result:", result);
     
     // Check confidence threshold
-    if (result.confidence < CONFIDENCE_THRESHOLD) {
-      console.warn(`⚠️  Classification confidence (${result.confidence}) below threshold (${CONFIDENCE_THRESHOLD}), falling back to Running Log`);
+    if (result.confidence < config.confidenceThreshold) {
+      console.warn(`⚠️  Classification confidence (${result.confidence}) below threshold (${config.confidenceThreshold}), falling back to Running Log`);
       return {
         templateId: RUNNING_LOG_ID,
         confidence: result.confidence,

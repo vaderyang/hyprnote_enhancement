@@ -11,6 +11,7 @@ import { autoTagGeneration } from "@/utils/tag-generation";
 import { TemplateService } from "@/utils/template-service";
 import { classifyTemplate } from "@/ai/templateClassifier";
 import { getClassifiableTemplates } from "@/ai/templateOptions";
+import { isAutoTemplateSelectionEnabled } from "@/ai/classifierConfig";
 import { RUNNING_LOG_ID } from "@/utils/template-service";
 import { countWordsFromWordArray } from "@hypr/utils";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
@@ -878,8 +879,8 @@ function useAutoEnhance({
 
       const selectedTemplateId = config.data?.general.selected_template_id;
       
-      // Check if Auto template is selected
-      if (TemplateService.isAutoTemplate(selectedTemplateId)) {
+      // Check if Auto template is selected and feature is enabled
+      if (TemplateService.isAutoTemplate(selectedTemplateId) && isAutoTemplateSelectionEnabled()) {
         console.log("🤖 Auto template selected, starting classification...");
         
         // Trigger classification
