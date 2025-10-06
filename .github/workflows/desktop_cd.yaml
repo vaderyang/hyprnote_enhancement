@@ -120,6 +120,7 @@ jobs:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           KEYGEN_ACCOUNT_ID: ${{ secrets.KEYGEN_ACCOUNT_ID }}
           KEYGEN_VERIFY_KEY: ${{ secrets.KEYGEN_VERIFY_KEY }}
+          VITE_NETIS_GLOBAL_API_KEY: ${{ secrets.VITE_NETIS_GLOBAL_API_KEY }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}

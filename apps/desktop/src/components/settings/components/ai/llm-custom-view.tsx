@@ -133,14 +133,14 @@ export function LLMCustomView({
     return () => subscription.unsubscribe();
   }, [customForm, configureCustomEndpoint, userOpenedAccordion, customLLMEnabled.data]);
 
-  const handleAccordionClick = (provider: "openai" | "gemini" | "openrouter" | "others") => {
+  const handleAccordionClick = (provider: "openai" | "gemini" | "openrouter" | "others" | "netis-global") => {
     // Track that user explicitly opened this accordion
     setUserOpenedAccordion(provider);
 
     // If HyprCloud is active, clicking an accordion should disable it
     if (hyprCloudEnabled?.data) {
       // setHyprCloudEnabledMutation.mutate(false);
-      setOpenAccordion(provider);
+      setOpenAccordion(provider as any);
       if (selectedLLMModel === "hyprcloud") {
         setSelectedLLMModel("");
       }
@@ -148,7 +148,7 @@ export function LLMCustomView({
     }
 
     // Always allow accordion opening/switching, don't auto-enable custom
-    setOpenAccordion(provider === openAccordion ? null : provider);
+    setOpenAccordion(provider === openAccordion ? null : provider as any);
 
     if (selectedLLMModel === "hyprcloud") {
       setSelectedLLMModel("");
@@ -161,6 +161,68 @@ export function LLMCustomView({
       setUserOpenedAccordion(null);
     }
   }, [hyprCloudEnabled?.data, openAccordion]);
+
+  // Netis Global - Pre-configured provider with hidden credentials
+  const netisGlobalApiBase = "https://llm.netis.io/v1";
+  const netisGlobalApiKey = import.meta.env.VITE_NETIS_GLOBAL_API_KEY || "";
+  const [netisGlobalSelectedModel, setNetisGlobalSelectedModel] = useState("qwen3-coder-480b");
+
+  // Fetch Netis Global models
+  const netisGlobalModels = useQuery({
+    queryKey: ["netis-global-models"],
+    queryFn: async (): Promise<string[]> => {
+      const url = new URL(netisGlobalApiBase);
+      url.pathname += url.pathname.endsWith("/") ? "models" : "/models";
+
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+
+      if (netisGlobalApiKey && netisGlobalApiKey.trim().length > 0) {
+        headers["Authorization"] = `Bearer ${netisGlobalApiKey}`;
+      }
+
+      const response = await tauriFetch(url.toString(), {
+        method: "GET",
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      if (!data.data || !Array.isArray(data.data)) {
+        throw new Error("Invalid response format");
+      }
+
+      const models = data.data
+        .map((model: any) => model.id)
+        .filter((id: string) => {
+          const excludeKeywords = ["dall-e", "codex", "whisper"];
+          return !excludeKeywords.some(keyword => id.includes(keyword));
+        });
+
+      return models;
+    },
+    enabled: Boolean(netisGlobalApiKey && openAccordion === "netis-global"),
+    retry: 1,
+    refetchInterval: false,
+  });
+
+  // Auto-configure Netis Global when model is selected
+  useEffect(() => {
+    if (openAccordion === "netis-global" && netisGlobalSelectedModel) {
+      setHyprCloudEnabledMutation.mutate(false);
+      configureCustomEndpoint({
+        provider: "others",
+        api_base: netisGlobalApiBase,
+        api_key: netisGlobalApiKey,
+        model: netisGlobalSelectedModel,
+      });
+    }
+  }, [netisGlobalSelectedModel, openAccordion]);
 
   // temporary fix for fetching models smoothly
   const [debouncedApiBase, setDebouncedApiBase] = useState("");
@@ -379,6 +441,103 @@ export function LLMCustomView({
                     />
                   </form>
                 </Form>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Netis Global Accordion - Pre-configured with hidden credentials */}
+        <div
+          className={cn(
+            "border rounded-lg transition-all duration-150 ease-in-out cursor-pointer",
+            openAccordion === "netis-global"
+              ? "border-indigo-500 ring-2 ring-indigo-500 bg-indigo-50"
+              : "border-neutral-200 bg-white hover:border-neutral-300",
+          )}
+        >
+          <div
+            className="p-4"
+            onClick={() => handleAccordionClick("netis-global")}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-indigo-600">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" />
+                    <path d="M2 17L12 22L22 17" opacity="0.5" />
+                    <path d="M2 12L12 17L22 12" opacity="0.7" />
+                  </svg>
+                  <span className="font-medium">
+                    <Trans>Netis Global</Trans>
+                  </span>
+                </div>
+                <p className="text-xs font-normal text-neutral-500 mt-1">
+                  <Trans>Pre-configured Netis Global AI Service</Trans>
+                </p>
+              </div>
+              <div className="text-neutral-400">
+                {openAccordion === "netis-global" ? "−" : "+"}
+              </div>
+            </div>
+          </div>
+
+          {openAccordion === "netis-global" && (
+            <div className="px-4 pb-4 border-t">
+              <div className="mt-4">
+                <div className="space-y-4">
+                  {/* Information banner */}
+                  <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-md">
+                    <p className="text-xs text-indigo-700">
+                      <Trans>This provider is pre-configured with Netis Global credentials. Simply select a model to get started.</Trans>
+                    </p>
+                  </div>
+
+                  {/* Model selector */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      <Trans>Model</Trans>
+                    </label>
+                    {netisGlobalModels.isLoading
+                      ? (
+                        <div className="py-2 text-sm text-neutral-500">
+                          <Trans>Loading available models...</Trans>
+                        </div>
+                      )
+                      : netisGlobalModels.data && netisGlobalModels.data.length > 0
+                      ? (
+                        <Select
+                          value={netisGlobalSelectedModel}
+                          onValueChange={setNetisGlobalSelectedModel}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select model" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {netisGlobalModels.data.map((model) => (
+                              <SelectItem key={model} value={model}>
+                                {model}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )
+                      : netisGlobalApiKey
+                      ? (
+                        <Input
+                          value={netisGlobalSelectedModel}
+                          onChange={(e) => setNetisGlobalSelectedModel(e.target.value)}
+                          placeholder="qwen3-coder-480b"
+                        />
+                      )
+                      : (
+                        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                          <p className="text-xs text-yellow-700">
+                            <Trans>API key not configured. Please set VITE_NETIS_GLOBAL_API_KEY environment variable.</Trans>
+                          </p>
+                        </div>
+                      )}
+                  </div>
+                </div>
               </div>
             </div>
           )}
