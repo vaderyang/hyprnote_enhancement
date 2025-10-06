@@ -806,6 +806,8 @@ async function performAutoClassification(sessionId: string): Promise<string> {
       confidence: result.confidence,
       latency_ms: latency,
       had_calendar_data: !!calendarEvent,
+      is_below_threshold: result.confidence < 0.5,
+      is_fallback: result.templateId === RUNNING_LOG_ID,
     });
     
     console.log(`📋 Auto-classified template: ${result.templateId} (confidence: ${result.confidence})`);
@@ -843,6 +845,14 @@ function useAutoEnhance({
   const setAutoEnhanceTemplate = useOngoingSession((s) => s.setAutoEnhanceTemplate);
   const prevOngoingSessionStatus = usePreviousValue(ongoingSessionStatus);
   const setShowRaw = useSession(sessionId, (s) => s.setShowRaw);
+  
+  // Debounce state - prevent duplicate triggers
+  const lastTriggerTime = useRef<number>(0);
+  const DEBOUNCE_MS = 500;
+  
+  // Track classification state for cancellation
+  const isClassifying = useRef<boolean>(false);
+  const classificationAbortController = useRef<AbortController | null>(null);
 
   // Get current template selection
   const config = useQuery({
@@ -856,6 +866,14 @@ function useAutoEnhance({
       && ongoingSessionStatus === "inactive"
       && enhanceStatus !== "pending"
     ) {
+      // Debounce: prevent duplicate classification within short timeframe
+      const now = Date.now();
+      if (now - lastTriggerTime.current < DEBOUNCE_MS) {
+        console.log("⏱️  Auto-enhance trigger debounced");
+        return;
+      }
+      lastTriggerTime.current = now;
+      
       setShowRaw(false);
 
       const selectedTemplateId = config.data?.general.selected_template_id;
@@ -866,9 +884,20 @@ function useAutoEnhance({
         
         // Trigger classification
         setIsClassifyingTemplate(true);
+        isClassifying.current = true;
+        
+        // Create abort controller for this classification
+        const abortController = new AbortController();
+        classificationAbortController.current = abortController;
         
         performAutoClassification(sessionId)
           .then((classifiedTemplateId) => {
+            // Check if classification was cancelled
+            if (abortController.signal.aborted) {
+              console.log("🚫 Classification was cancelled by user override");
+              return;
+            }
+            
             setAutoEnhanceTemplate(classifiedTemplateId);
             
             // Trigger enhancement
@@ -878,6 +907,12 @@ function useAutoEnhance({
             });
           })
           .catch((error) => {
+            // Check if this is a cancellation
+            if (abortController.signal.aborted) {
+              console.log("🚫 Classification cancelled");
+              return;
+            }
+            
             console.error("Auto classification failed:", error);
             
             // Fallback to Running Log
@@ -889,6 +924,8 @@ function useAutoEnhance({
           })
           .finally(() => {
             setIsClassifyingTemplate(false);
+            isClassifying.current = false;
+            classificationAbortController.current = null;
             setAutoEnhanceTemplate(null);
           });
       } else {
@@ -913,4 +950,41 @@ function useAutoEnhance({
     config.data,
     setIsClassifyingTemplate,
   ]);
+  
+  // Watch for user template override during classification
+  const prevSelectedTemplateId = usePreviousValue(config.data?.general.selected_template_id);
+  
+  useEffect(() => {
+    const currentTemplateId = config.data?.general.selected_template_id;
+    
+    // If user changes template while classification is in progress
+    if (
+      isClassifying.current &&
+      prevSelectedTemplateId &&
+      currentTemplateId &&
+      prevSelectedTemplateId !== currentTemplateId &&
+      !TemplateService.isAutoTemplate(currentTemplateId)
+    ) {
+      console.log("🔄 User manually changed template during classification, cancelling auto-selection");
+      
+      // Cancel ongoing classification
+      if (classificationAbortController.current) {
+        classificationAbortController.current.abort();
+      }
+      
+      // Reset states
+      setIsClassifyingTemplate(false);
+      isClassifying.current = false;
+      classificationAbortController.current = null;
+      
+      // Trigger enhancement with user's new selection
+      if (enhanceStatus !== "pending") {
+        const resolvedTemplateId = TemplateService.getCanonicalTemplateId(currentTemplateId);
+        enhanceMutate({
+          triggerType: "auto",
+          templateId: resolvedTemplateId,
+        });
+      }
+    }
+  }, [config.data?.general.selected_template_id, prevSelectedTemplateId, enhanceStatus, enhanceMutate, setIsClassifyingTemplate]);
 }

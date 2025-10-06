@@ -31,6 +31,7 @@ export interface ClassificationResult {
 const DEFAULT_TIMEOUT_MS = 4500;
 const TRANSCRIPT_PREVIEW_LENGTH = 2000; // characters
 const TRANSCRIPT_TAIL_LENGTH = 500;
+const CONFIDENCE_THRESHOLD = 0.5; // Minimum confidence to accept classification
 
 /**
  * Classify which template best fits the meeting content
@@ -78,6 +79,16 @@ export async function classifyTemplate(
     const result = parseClassificationResponse(responseText);
     
     console.log("📋 Template classification result:", result);
+    
+    // Check confidence threshold
+    if (result.confidence < CONFIDENCE_THRESHOLD) {
+      console.warn(`⚠️  Classification confidence (${result.confidence}) below threshold (${CONFIDENCE_THRESHOLD}), falling back to Running Log`);
+      return {
+        templateId: RUNNING_LOG_ID,
+        confidence: result.confidence,
+        reason: `Low confidence (${result.confidence}), defaulting to Running Log`,
+      };
+    }
     
     return result;
   } catch (error) {
