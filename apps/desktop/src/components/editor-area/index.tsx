@@ -9,6 +9,9 @@ import { useHypr } from "@/contexts";
 import { extractTextFromHtml } from "@/utils/parse";
 import { autoTagGeneration } from "@/utils/tag-generation";
 import { TemplateService } from "@/utils/template-service";
+import { classifyTemplate } from "@/ai/templateClassifier";
+import { getClassifiableTemplates } from "@/ai/templateOptions";
+import { RUNNING_LOG_ID } from "@/utils/template-service";
 import { countWordsFromWordArray } from "@hypr/utils";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
@@ -20,6 +23,7 @@ import Editor, { type TiptapEditor } from "@hypr/tiptap/editor";
 import Renderer from "@hypr/tiptap/renderer";
 import { extractHashtags } from "@hypr/tiptap/shared";
 import { toast } from "@hypr/ui/components/ui/toast";
+import { Loader2 } from "lucide-react";
 import { cn } from "@hypr/ui/lib/utils";
 import { generateText, localProviderName, modelProvider, smoothStream, streamText } from "@hypr/utils/ai";
 import { useOngoingSession, useSession, useSessions } from "@hypr/utils/contexts";
@@ -227,6 +231,10 @@ export default function EditorArea({
 
   const sessionsStore = useSessions((s) => s.sessions);
   const queryClient = useQueryClient();
+  
+  // State for template classification indicator
+  const [isClassifyingTemplate, setIsClassifyingTemplate] = useState(false);
+  
   const { enhance, progress, isCancelled } = useEnhanceMutation({
     sessionId,
     preMeetingNote,
@@ -256,6 +264,7 @@ export default function EditorArea({
     sessionId,
     enhanceStatus: enhance.status,
     enhanceMutate: enhance.mutate,
+    setIsClassifyingTemplate,
   });
 
   // Listen for manual auto-enhance trigger from paste/upload
@@ -402,6 +411,16 @@ export default function EditorArea({
           sessionId={sessionId}
           onCancel={handleCancelAnnotation}
         />
+      )}
+
+      {/* Classification indicator */}
+      {isClassifyingTemplate && (
+        <div className="absolute bottom-20 w-full flex justify-center items-center pointer-events-none z-10">
+          <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg border border-gray-200 flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+            <span className="text-sm text-gray-700">Auto analyzing the transcription...</span>
+          </div>
+        </div>
       )}
 
       <AnimatePresence>
@@ -552,7 +571,10 @@ export function useEnhanceMutation({
         ? templateId
         : config.general?.selected_template_id;
 
-      const selectedTemplate = await TemplateService.getTemplate(effectiveTemplateId ?? "");
+      // Use canonical template ID (handles legacy mappings)
+      const canonicalTemplateId = TemplateService.getCanonicalTemplateId(effectiveTemplateId);
+      
+      const selectedTemplate = await TemplateService.getTemplate(canonicalTemplateId);
       let contextText = "";
 
       // Print context tags if they exist
@@ -743,20 +765,90 @@ export function useEnhanceMutation({
   return { enhance, progress: actualIsLocalLlm ? progress : undefined, isCancelled };
 }
 
+/**
+ * Helper function to perform auto classification
+ */
+async function performAutoClassification(sessionId: string): Promise<string> {
+  try {
+    // Get transcript text
+    const words = await dbCommands.getWords(sessionId);
+    const transcriptText = words.map(w => w.text).join(" ");
+    
+    // Get calendar event info (if available)
+    const session = await dbCommands.getSession({ id: sessionId });
+    const calendarEvent = session.event_id 
+      ? await dbCommands.getEvent(session.event_id)
+      : null;
+    
+    // Get available templates
+    const availableTemplates = await getClassifiableTemplates();
+    
+    // Classify
+    const startTime = Date.now();
+    const result = await classifyTemplate({
+      transcriptText,
+      calendarEvent: calendarEvent ? {
+        title: calendarEvent.title,
+        description: calendarEvent.description,
+        participants: [], // Extract from event if available
+      } : undefined,
+      availableTemplates,
+    });
+    
+    const latency = Date.now() - startTime;
+    
+    // Log analytics
+    analyticsCommands.event({
+      event: "template_classification_completed",
+      distinct_id: session.user_id,
+      session_id: sessionId,
+      template_id_selected: result.templateId,
+      confidence: result.confidence,
+      latency_ms: latency,
+      had_calendar_data: !!calendarEvent,
+    });
+    
+    console.log(`📋 Auto-classified template: ${result.templateId} (confidence: ${result.confidence})`);
+    
+    return result.templateId;
+  } catch (error) {
+    console.error("Auto classification failed:", error);
+    
+    // Log failure
+    analyticsCommands.event({
+      event: "template_classification_failed",
+      distinct_id: "unknown",
+      session_id: sessionId,
+      error_type: "exception",
+      fallback_template: RUNNING_LOG_ID,
+    });
+    
+    return RUNNING_LOG_ID;
+  }
+}
+
 function useAutoEnhance({
   sessionId,
   enhanceStatus,
   enhanceMutate,
+  setIsClassifyingTemplate,
 }: {
   sessionId: string;
   enhanceStatus: string;
   enhanceMutate: (params: { triggerType: "auto"; templateId?: string | null }) => void;
+  setIsClassifyingTemplate: (value: boolean) => void;
 }) {
   const ongoingSessionStatus = useOngoingSession((s) => s.status);
   const autoEnhanceTemplate = useOngoingSession((s) => s.autoEnhanceTemplate);
   const setAutoEnhanceTemplate = useOngoingSession((s) => s.setAutoEnhanceTemplate);
   const prevOngoingSessionStatus = usePreviousValue(ongoingSessionStatus);
   const setShowRaw = useSession(sessionId, (s) => s.setShowRaw);
+
+  // Get current template selection
+  const config = useQuery({
+    queryKey: ["config", "general"],
+    queryFn: async () => await dbCommands.getConfig(),
+  });
 
   useEffect(() => {
     if (
@@ -766,14 +858,48 @@ function useAutoEnhance({
     ) {
       setShowRaw(false);
 
-      // Use the selected template and then clear it
-      enhanceMutate({
-        triggerType: "auto",
-        templateId: autoEnhanceTemplate,
-      });
-
-      // Clear the template after using it (one-time use)
-      setAutoEnhanceTemplate(null);
+      const selectedTemplateId = config.data?.general.selected_template_id;
+      
+      // Check if Auto template is selected
+      if (TemplateService.isAutoTemplate(selectedTemplateId)) {
+        console.log("🤖 Auto template selected, starting classification...");
+        
+        // Trigger classification
+        setIsClassifyingTemplate(true);
+        
+        performAutoClassification(sessionId)
+          .then((classifiedTemplateId) => {
+            setAutoEnhanceTemplate(classifiedTemplateId);
+            
+            // Trigger enhancement
+            enhanceMutate({
+              triggerType: "auto",
+              templateId: classifiedTemplateId,
+            });
+          })
+          .catch((error) => {
+            console.error("Auto classification failed:", error);
+            
+            // Fallback to Running Log
+            setAutoEnhanceTemplate(RUNNING_LOG_ID);
+            enhanceMutate({
+              triggerType: "auto",
+              templateId: RUNNING_LOG_ID,
+            });
+          })
+          .finally(() => {
+            setIsClassifyingTemplate(false);
+            setAutoEnhanceTemplate(null);
+          });
+      } else {
+        // Use manually selected template or pre-set autoEnhanceTemplate
+        enhanceMutate({
+          triggerType: "auto",
+          templateId: autoEnhanceTemplate,
+        });
+        
+        setAutoEnhanceTemplate(null);
+      }
     }
   }, [
     ongoingSessionStatus,
@@ -784,5 +910,7 @@ function useAutoEnhance({
     autoEnhanceTemplate,
     setAutoEnhanceTemplate,
     prevOngoingSessionStatus,
+    config.data,
+    setIsClassifyingTemplate,
   ]);
 }
