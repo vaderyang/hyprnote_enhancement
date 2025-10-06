@@ -4,6 +4,7 @@ import { RUNNING_LOG_ID } from "@/utils/template-service";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { modelProvider } from "@hypr/utils/ai";
 import { getClassifierConfig } from "./classifierConfig";
+import { redactPII, redactCalendarEventPII } from "./piiRedaction";
 
 /**
  * Input for template classification
@@ -109,16 +110,18 @@ export async function classifyTemplate(
 function buildClassificationContext(input: ClassificationInput): string {
   const parts: string[] = [];
   
-  // Calendar event has highest priority
+  // Calendar event has highest priority - redact PII from description
   if (input.calendarEvent) {
-    if (input.calendarEvent.title) {
-      parts.push(`Meeting Title: ${input.calendarEvent.title}`);
+    const redactedEvent = redactCalendarEventPII(input.calendarEvent);
+    
+    if (redactedEvent.title) {
+      parts.push(`Meeting Title: ${redactedEvent.title}`);
     }
-    if (input.calendarEvent.description) {
-      parts.push(`Meeting Description: ${input.calendarEvent.description}`);
+    if (redactedEvent.description) {
+      parts.push(`Meeting Description: ${redactedEvent.description}`);
     }
-    if (input.calendarEvent.participants?.length) {
-      parts.push(`Participants: ${input.calendarEvent.participants.join(", ")}`);
+    if (redactedEvent.participants?.length) {
+      parts.push(`Participants: ${redactedEvent.participants.join(", ")}`);
     }
   }
   
@@ -129,9 +132,13 @@ function buildClassificationContext(input: ClassificationInput): string {
     ? transcript.substring(transcript.length - TRANSCRIPT_TAIL_LENGTH)
     : "";
   
-  parts.push(`\nTranscript Preview:\n${preview}`);
-  if (tail) {
-    parts.push(`\n[...]\n\nTranscript Ending:\n${tail}`);
+  // Redact PII from transcript
+  const { text: redactedPreview, stats: previewStats } = redactPII(preview, { logStats: true });
+  const { text: redactedTail } = tail ? redactPII(tail) : { text: "" };
+  
+  parts.push(`\nTranscript Preview:\n${redactedPreview}`);
+  if (redactedTail) {
+    parts.push(`\n[...]\n\nTranscript Ending:\n${redactedTail}`);
   }
   
   return parts.join("\n\n");
