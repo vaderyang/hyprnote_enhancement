@@ -296,14 +296,51 @@ export default function EditorArea({
     [showRaw, enhancedContent, rawContent],
   );
 
-  const handleEnhanceWithTemplate = useCallback((templateId: string) => {
-    const targetTemplateId = templateId === "auto" ? null : templateId;
-    enhance.mutate({ templateId: targetTemplateId });
-  }, [enhance]);
+  const handleEnhanceWithTemplate = useCallback(async (templateId: string) => {
+    // Check if user selected "Auto" from dropdown
+    if (templateId === "auto" && isAutoTemplateSelectionEnabled()) {
+      setIsClassifyingTemplate(true);
 
-  const handleClickEnhance = useCallback(() => {
-    enhance.mutate({});
-  }, [enhance]);
+      try {
+        const classifiedTemplateId = await performAutoClassification(sessionId);
+        enhance.mutate({ templateId: classifiedTemplateId });
+      } catch (error) {
+        console.error("Auto classification failed:", error);
+        // Fallback to Running Log
+        enhance.mutate({ templateId: RUNNING_LOG_ID });
+      } finally {
+        setIsClassifyingTemplate(false);
+      }
+    } else {
+      const targetTemplateId = templateId === "auto" ? null : templateId;
+      enhance.mutate({ templateId: targetTemplateId });
+    }
+  }, [enhance, sessionId, setIsClassifyingTemplate]);
+
+  const handleClickEnhance = useCallback(async () => {
+    // Check if user's default template is "auto-select"
+    const config = await dbCommands.getConfig();
+    const selectedTemplateId = config.general?.selected_template_id;
+
+    if (TemplateService.isAutoTemplate(selectedTemplateId) && isAutoTemplateSelectionEnabled()) {
+      // Trigger auto-classification
+      setIsClassifyingTemplate(true);
+
+      try {
+        const classifiedTemplateId = await performAutoClassification(sessionId);
+        enhance.mutate({ templateId: classifiedTemplateId });
+      } catch (error) {
+        console.error("Auto classification failed:", error);
+        // Fallback to Running Log
+        enhance.mutate({ templateId: RUNNING_LOG_ID });
+      } finally {
+        setIsClassifyingTemplate(false);
+      }
+    } else {
+      // Use the selected template from config (or default)
+      enhance.mutate({});
+    }
+  }, [enhance, sessionId, setIsClassifyingTemplate]);
 
   const safelyFocusEditor = useCallback(() => {
     if (editorRef.current?.editor && editorRef.current.editor.isEditable) {
