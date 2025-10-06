@@ -1,35 +1,65 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background Circle for better visibility on different backgrounds -->
-  <circle cx="256" cy="256" r="240" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="4"/>
+  <!-- Gradient Definitions for Modern Look -->
+  <defs>
+    <linearGradient id="cardGradient" x1="256" y1="160" x2="256" y2="440">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#F8FAFC" />
+    </linearGradient>
+    <linearGradient id="pinGradient" x1="256" y1="70" x2="256" y2="220">
+      <stop offset="0%" stop-color="#FCD34D" />
+      <stop offset="100%" stop-color="#F59E0B" />
+    </linearGradient>
+    <linearGradient id="graphGradient" x1="180" y1="260" x2="332" y2="340">
+      <stop offset="0%" stop-color="#6366F1" />
+      <stop offset="100%" stop-color="#4C6FFF" />
+    </linearGradient>
+    <filter id="shadow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="6"/>
+      <feOffset dx="0" dy="4" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.15"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
   
-  <!-- Note Card Base -->
-  <rect x="120" y="180" width="272" height="240" rx="16" fill="#FFFFFF" stroke="#4C6FFF" stroke-width="8"/>
+  <!-- Background Circle -->
+  <circle cx="256" cy="256" r="245" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="12"/>
+  
+  <!-- Note Card Base with Shadow -->
+  <g filter="url(#shadow)">
+    <rect x="110" y="170" width="292" height="260" rx="24" fill="url(#cardGradient)" stroke="#4C6FFF" stroke-width="16"/>
+  </g>
   
   <!-- Pin forming letter 'P' -->
   <g id="pin-p">
-    <!-- Pin head (circular) -->
-    <circle cx="256" cy="100" r="32" fill="#F59E0B" stroke="#D97706" stroke-width="4"/>
-    <!-- Pin shaft going down -->
-    <rect x="248" y="132" width="16" height="72" rx="8" fill="#F59E0B"/>
-    <!-- Pin point -->
-    <path d="M 256 204 L 248 220 L 264 220 Z" fill="#D97706"/>
+    <!-- Pin head (circular) with bold outline -->
+    <circle cx="256" cy="95" r="38" fill="url(#pinGradient)" stroke="#D97706" stroke-width="10"/>
+    <!-- Pin shaft going down (wider) -->
+    <rect x="238" y="133" width="36" height="80" rx="12" fill="url(#pinGradient)"/>
+    <!-- Pin point (more pronounced) -->
+    <path d="M 256 213 L 238 233 L 274 233 Z" fill="#D97706"/>
   </g>
   
-  <!-- Knowledge Graph Dots (3 connected dots forming a network inside the card) -->
+  <!-- Knowledge Graph (Bold Version) -->
   <g id="knowledge-graph">
-    <!-- Left dot -->
-    <circle cx="180" cy="280" r="16" fill="#4C6FFF"/>
-    <!-- Center dot -->
-    <circle cx="256" cy="320" r="16" fill="#4C6FFF"/>
-    <!-- Right dot -->
-    <circle cx="332" cy="280" r="16" fill="#4C6FFF"/>
+    <!-- Connection lines (draw first, thicker) -->
+    <line x1="175" y1="285" x2="256" y2="330" stroke="url(#graphGradient)" stroke-width="14" stroke-linecap="round"/>
+    <line x1="256" y1="330" x2="337" y2="285" stroke="url(#graphGradient)" stroke-width="14" stroke-linecap="round"/>
+    <line x1="175" y1="285" x2="337" y2="285" stroke="url(#graphGradient)" stroke-width="14" stroke-linecap="round"/>
     
-    <!-- Connection lines -->
-    <line x1="180" y1="280" x2="256" y2="320" stroke="#4C6FFF" stroke-width="6" stroke-linecap="round"/>
-    <line x1="256" y1="320" x2="332" y2="280" stroke="#4C6FFF" stroke-width="6" stroke-linecap="round"/>
-    <line x1="180" y1="280" x2="332" y2="280" stroke="#4C6FFF" stroke-width="6" stroke-linecap="round"/>
+    <!-- Nodes (larger) -->
+    <!-- Left dot -->
+    <circle cx="175" cy="285" r="22" fill="#FFFFFF" stroke="#4C6FFF" stroke-width="10"/>
+    <!-- Center dot -->
+    <circle cx="256" cy="330" r="22" fill="#FFFFFF" stroke="#4C6FFF" stroke-width="10"/>
+    <!-- Right dot -->
+    <circle cx="337" cy="285" r="22" fill="#FFFFFF" stroke="#4C6FFF" stroke-width="10"/>
   </g>
   
-  <!-- Subtle shadow effect on card -->
-  <rect x="124" y="184" width="264" height="232" rx="14" fill="none" stroke="#94A3B8" stroke-width="2" opacity="0.3"/>
+  <!-- Accent line on card top (decorative element) -->
+  <rect x="130" y="190" width="252" height="8" rx="4" fill="#4C6FFF" opacity="0.3"/>
 </svg>
