@@ -14,7 +14,6 @@ import { getClassifiableTemplates } from "@/ai/templateOptions";
 import { isAutoTemplateSelectionEnabled } from "@/ai/classifierConfig";
 import { RUNNING_LOG_ID } from "@/utils/template-service";
 import { countWordsFromWordArray } from "@hypr/utils";
-import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { events as localLlmEvents } from "@hypr/plugin-local-llm";
@@ -321,10 +320,7 @@ export default function EditorArea({
     const timeSinceLastEvent = now - lastBacklinkSearchTime.current;
 
     if (timeSinceLastEvent >= 5000) {
-      analyticsCommands.event({
-        event: "searched_backlink",
-        distinct_id: userId,
-      });
+      // Analytics removed
       lastBacklinkSearchTime.current = now;
     }
 
@@ -580,10 +576,7 @@ export function useEnhanceMutation({
 
       // Print context tags if they exist
       if (selectedTemplate?.context_option) {
-        analyticsCommands.event({
-          event: "enhance_with_context",
-          distinct_id: userId,
-        });
+        // Analytics removed
         try {
           const contextConfig = JSON.parse(selectedTemplate.context_option);
           if (contextConfig.type === "tags" && contextConfig.selections?.length > 0) {
@@ -601,13 +594,7 @@ export function useEnhanceMutation({
       }
 
       if (selectedTemplate !== null) {
-        const eventName = selectedTemplate?.tags.includes("builtin")
-          ? "builtin_template_enhancement_started"
-          : "custom_template_enhancement_started";
-        analyticsCommands.event({
-          event: eventName,
-          distinct_id: userId,
-        });
+        // Analytics removed
       }
 
       const shouldUseH1Headers = !effectiveTemplateId && h1Headers.length > 0;
@@ -650,13 +637,7 @@ export function useEnhanceMutation({
       const isHyprCloud = type !== "HyprLocal" && connection && connection.api_base.includes("pro.hyprnote.com");
 
       if (sessionId !== onboardingSessionId) {
-        analyticsCommands.event({
-          event: "normal_enhance_start",
-          distinct_id: userId,
-          session_id: sessionId,
-          connection_type: type,
-          is_hypr_cloud: isHyprCloud,
-        });
+        // Analytics removed
       }
 
       const { text, fullStream } = streamText({
@@ -727,13 +708,7 @@ export function useEnhanceMutation({
       setIsCancelled(false);
       onSuccess(enhancedContent ?? "");
 
-      analyticsCommands.event({
-        event: sessionId === onboardingSessionId
-          ? "onboarding_enhance_done"
-          : "normal_enhance_done",
-        distinct_id: userId,
-        session_id: sessionId,
-      });
+      // Analytics removed
 
       persistSession();
 
@@ -798,34 +773,11 @@ async function performAutoClassification(sessionId: string): Promise<string> {
     
     const latency = Date.now() - startTime;
     
-    // Log analytics
-    analyticsCommands.event({
-      event: "template_classification_completed",
-      distinct_id: session?.user_id || "unknown",
-      session_id: sessionId,
-      template_id_selected: result.templateId,
-      confidence: result.confidence,
-      latency_ms: latency,
-      had_calendar_data: !!calendarEvent,
-      is_below_threshold: result.confidence < 0.5,
-      is_fallback: result.templateId === RUNNING_LOG_ID,
-    });
-    
-    console.log(`📋 Auto-classified template: ${result.templateId} (confidence: ${result.confidence})`);
+    console.log(`📋 Auto-classified template: ${result.templateId} (confidence: ${result.confidence}, latency: ${latency}ms)`);
     
     return result.templateId;
   } catch (error) {
     console.error("Auto classification failed:", error);
-    
-    // Log failure
-    analyticsCommands.event({
-      event: "template_classification_failed",
-      distinct_id: "unknown",
-      session_id: sessionId,
-      error_type: "exception",
-      fallback_template: RUNNING_LOG_ID,
-    });
-    
     return RUNNING_LOG_ID;
   }
 }

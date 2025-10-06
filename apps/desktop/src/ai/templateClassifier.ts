@@ -1,7 +1,6 @@
 import { streamText } from "@hypr/utils/ai";
-import { getClassifiableTemplates, type ClassifiableTemplate } from "./templateOptions";
+import type { ClassifiableTemplate } from "./templateOptions";
 import { RUNNING_LOG_ID } from "@/utils/template-service";
-import { commands as connectorCommands } from "@hypr/plugin-connector";
 import { modelProvider } from "@hypr/utils/ai";
 import { getClassifierConfig } from "./classifierConfig";
 import { redactPII, redactCalendarEventPII } from "./piiRedaction";
@@ -60,7 +59,6 @@ export async function classifyTemplate(
       : abortController.signal;
     
     // Get LLM connection
-    const { type } = await connectorCommands.getLlmConnection();
     const provider = await modelProvider();
     const model = provider.languageModel("defaultModel");
     
@@ -133,7 +131,7 @@ function buildClassificationContext(input: ClassificationInput): string {
     : "";
   
   // Redact PII from transcript
-  const { text: redactedPreview, stats: previewStats } = redactPII(preview, { logStats: true });
+  const { text: redactedPreview } = redactPII(preview, { logStats: true });
   const { text: redactedTail } = tail ? redactPII(tail) : { text: "" };
   
   parts.push(`\nTranscript Preview:\n${redactedPreview}`);

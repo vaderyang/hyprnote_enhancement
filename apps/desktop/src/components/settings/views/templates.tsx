@@ -8,7 +8,6 @@ import { useEffect, useState } from "react";
 import { useHypr } from "@/contexts";
 // useLicense import removed - no longer needed
 import { TemplateService, AUTO_TEMPLATE_ID, RUNNING_LOG_ID } from "@/utils/template-service";
-import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { type Template } from "@hypr/plugin-db";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { Button } from "@hypr/ui/components/ui/button";
@@ -103,14 +102,6 @@ export default function TemplatesView() {
       // Deselect by setting to null
       selectTemplateMutation.mutate("");
     } else {
-      const isCustomTemplate = customTemplates.some(t => t.id === template.id);
-      const eventName = isCustomTemplate ? "custom_template_selected" : "builtin_template_selected";
-
-      analyticsCommands.event({
-        event: eventName,
-        distinct_id: userId,
-      });
-
       selectTemplateMutation.mutate(template.id);
     }
   };
@@ -123,11 +114,6 @@ export default function TemplatesView() {
 
   const handleNewTemplate = async () => {
     // License limit removed - all users can create unlimited custom templates
-
-    analyticsCommands.event({
-      event: "template_created",
-      distinct_id: userId,
-    });
 
     const newTemplate: Template = {
       id: crypto.randomUUID(),
@@ -228,11 +214,6 @@ export default function TemplatesView() {
 
       setSelectedTemplate(duplicatedTemplate);
       setViewState("editor");
-
-      analyticsCommands.event({
-        event: "template_duplicated",
-        distinct_id: userId,
-      });
     } catch (error) {
       console.error("Failed to duplicate template:", error);
     }

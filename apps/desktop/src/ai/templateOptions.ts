@@ -1,5 +1,4 @@
 import { TemplateService } from "@/utils/template-service";
-import type { Template } from "@hypr/plugin-db";
 
 /**
  * Classifiable template representation for the LLM classifier
