@@ -2,6 +2,12 @@ import type { Template } from "@hypr/plugin-db";
 import { commands as dbCommands } from "@hypr/plugin-db";
 import { DEFAULT_TEMPLATES, isDefaultTemplate } from "./default-templates";
 
+/**
+ * Special template IDs
+ */
+export const AUTO_TEMPLATE_ID = "auto-select";
+export const RUNNING_LOG_ID = "running-log";
+
 export class TemplateService {
   /**
    * Map legacy template IDs to canonical IDs for backward compatibility

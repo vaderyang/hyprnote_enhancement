@@ -777,8 +777,8 @@ async function performAutoClassification(sessionId: string): Promise<string> {
     
     // Get calendar event info (if available)
     const session = await dbCommands.getSession({ id: sessionId });
-    const calendarEvent = session.event_id 
-      ? await dbCommands.getEvent(session.event_id)
+    const calendarEvent = session?.calendar_event_id 
+      ? await dbCommands.getEvent(session.calendar_event_id)
       : null;
     
     // Get available templates
@@ -789,9 +789,9 @@ async function performAutoClassification(sessionId: string): Promise<string> {
     const result = await classifyTemplate({
       transcriptText,
       calendarEvent: calendarEvent ? {
-        title: calendarEvent.title,
-        description: calendarEvent.description,
-        participants: [], // Extract from event if available
+        title: calendarEvent.name, // Event uses 'name' not 'title'
+        description: calendarEvent.note, // Event uses 'note' not 'description'
+        participants: [], // participants is stored as JSON string in DB
       } : undefined,
       availableTemplates,
     });
@@ -801,7 +801,7 @@ async function performAutoClassification(sessionId: string): Promise<string> {
     // Log analytics
     analyticsCommands.event({
       event: "template_classification_completed",
-      distinct_id: session.user_id,
+      distinct_id: session?.user_id || "unknown",
       session_id: sessionId,
       template_id_selected: result.templateId,
       confidence: result.confidence,

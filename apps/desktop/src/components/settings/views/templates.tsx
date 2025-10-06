@@ -373,34 +373,10 @@ export default function TemplatesView() {
           </div>
         )}
 
-        {/* Empty state if no custom templates */}
-        {customTemplates.length === 0 && (
-          <div className="mt-6 space-y-2">
-            {customTemplates.length > 0
-            ? (
-              customTemplates.map((template) => (
-                <TemplateCard
-                  key={template.id}
-                  template={template}
-                  onSelect={() => handleTemplateSelect(template)}
-                  onEdit={() => handleTemplateEdit(template)}
-                  onClone={() => handleCloneTemplate(template)}
-                  onDelete={() => handleDeleteTemplate(template)}
-                  isSelected={template.id === selectedTemplateId}
-                />
-              ))
-            )
-            : (
-              <div className="flex flex-col items-center justify-center py-8 px-6 text-center bg-neutral-50 border border-neutral-200 rounded-lg">
-                <div className="text-sm font-medium text-neutral-600 mb-1">
-                  <Trans>No templates yet</Trans>
-                </div>
-                <div className="text-xs text-neutral-500">
-                  <Trans>Create your first template to get started</Trans>
-                </div>
-              </div>
-            )}
-        </div>
+        {/* Divider before built-in templates */}
+        {builtinTemplates.length > 0 && customTemplates.length > 0 && (
+          <div className="my-6 border-t border-neutral-200" />
+        )}
 
         {/* Built-in Templates */}
         {builtinTemplates.length > 0 && (
