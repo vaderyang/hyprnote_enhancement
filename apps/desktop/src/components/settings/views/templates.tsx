@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 
 import { useHypr } from "@/contexts";
 // useLicense import removed - no longer needed
-import { TemplateService } from "@/utils/template-service";
+import { TemplateService, AUTO_TEMPLATE_ID, RUNNING_LOG_ID } from "@/utils/template-service";
 import { commands as analyticsCommands } from "@hypr/plugin-analytics";
 import { type Template } from "@hypr/plugin-db";
 import { commands as dbCommands } from "@hypr/plugin-db";
@@ -24,6 +24,8 @@ export default function TemplatesView() {
 
   const [viewState, setViewState] = useState<ViewState>("list");
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
+  const [autoTemplate, setAutoTemplate] = useState<Template | null>(null);
+  const [runningLogTemplate, setRunningLogTemplate] = useState<Template | null>(null);
   const [customTemplates, setCustomTemplates] = useState<Template[]>([]);
   const [builtinTemplates, setBuiltinTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,12 +73,22 @@ export default function TemplatesView() {
     try {
       setLoading(true);
 
-      // Use TemplateService to get categorized templates
-      const { custom, builtin } = await TemplateService.getTemplatesByCategory();
-      console.log("loaded templates - custom:", custom, "builtin:", builtin);
+      // Use getAllTemplatesForSelection to get Auto option included
+      const allTemplates = await TemplateService.getAllTemplatesForSelection();
+      
+      // Separate Auto, Running Log, and other templates
+      const auto = allTemplates.find(t => t.id === AUTO_TEMPLATE_ID);
+      const runningLog = allTemplates.find(t => t.id === RUNNING_LOG_ID);
+      const others = allTemplates.filter(t => 
+        t.id !== AUTO_TEMPLATE_ID && t.id !== RUNNING_LOG_ID
+      );
 
-      setCustomTemplates(custom);
-      setBuiltinTemplates(builtin);
+      setAutoTemplate(auto || null);
+      setRunningLogTemplate(runningLog || null);
+      setCustomTemplates(others.filter(t => !t.tags?.includes("builtin")));
+      setBuiltinTemplates(others.filter(t => t.tags?.includes("builtin")));
+
+      console.log("loaded templates - auto:", auto, "runningLog:", runningLog, "custom:", others.filter(t => !t.tags?.includes("builtin")), "builtin:", others.filter(t => t.tags?.includes("builtin")));
     } catch (error) {
       console.error("Failed to load templates:", error);
     } finally {
@@ -173,6 +185,14 @@ export default function TemplatesView() {
 
   // Get currently selected template ID from config
   const selectedTemplateId = config.data?.general.selected_template_id;
+
+  // Default new users to Auto template
+  useEffect(() => {
+    if (config.data && !config.data.general.selected_template_id) {
+      // New user - default to Auto
+      selectTemplateMutation.mutate(AUTO_TEMPLATE_ID);
+    }
+  }, [config.data]);
 
   // Add handler for template deletion from editor
   const handleTemplateDeleteFromEditor = async () => {
@@ -304,9 +324,59 @@ export default function TemplatesView() {
           </Button>
         </div>
 
-        {/* Templates */}
+        {/* Special Templates: Auto and Running Log */}
         <div className="space-y-2">
-          {customTemplates.length > 0
+          {/* Auto Template */}
+          {autoTemplate && (
+            <TemplateCard
+              key={autoTemplate.id}
+              template={autoTemplate}
+              onSelect={() => handleTemplateSelect(autoTemplate)}
+              onEdit={() => {}} // Auto template is not editable
+              isSelected={selectedTemplateId === AUTO_TEMPLATE_ID}
+              isSpecial={true}
+            />
+          )}
+
+          {/* Running Log Template */}
+          {runningLogTemplate && (
+            <TemplateCard
+              key={runningLogTemplate.id}
+              template={runningLogTemplate}
+              onSelect={() => handleTemplateSelect(runningLogTemplate)}
+              onEdit={() => handleTemplateEdit(runningLogTemplate)}
+              isSelected={selectedTemplateId === RUNNING_LOG_ID}
+              isSpecial={true}
+            />
+          )}
+        </div>
+
+        {/* Custom Templates */}
+        {customTemplates.length > 0 && (
+          <div className="mt-6">
+            <div className="text-sm font-medium mb-2">
+              <Trans>Your Custom Templates</Trans>
+            </div>
+            <div className="space-y-2">
+              {customTemplates.map((template) => (
+                <TemplateCard
+                  key={template.id}
+                  template={template}
+                  onSelect={() => handleTemplateSelect(template)}
+                  onEdit={() => handleTemplateEdit(template)}
+                  onClone={() => handleCloneTemplate(template)}
+                  onDelete={() => handleDeleteTemplate(template)}
+                  isSelected={template.id === selectedTemplateId}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Empty state if no custom templates */}
+        {customTemplates.length === 0 && (
+          <div className="mt-6 space-y-2">
+            {customTemplates.length > 0
             ? (
               customTemplates.map((template) => (
                 <TemplateCard
@@ -367,9 +437,10 @@ interface TemplateCardProps {
   onDelete?: () => void;
   emoji?: string;
   isSelected?: boolean;
+  isSpecial?: boolean; // For Auto and Running Log templates
 }
 
-function TemplateCard({ template, onSelect, onEdit, onClone, onDelete, emoji, isSelected }: TemplateCardProps) {
+function TemplateCard({ template, onSelect, onEdit, onClone, onDelete, emoji, isSelected, isSpecial }: TemplateCardProps) {
   // Function to get emoji based on template title
   const getTemplateEmoji = (title: string) => {
     if (emoji) {
@@ -413,6 +484,10 @@ function TemplateCard({ template, onSelect, onEdit, onClone, onDelete, emoji, is
   };
 
   const handleCardClick = () => {
+    // Don't allow editing Auto template
+    if (template.id === AUTO_TEMPLATE_ID) {
+      return;
+    }
     onEdit?.();
   };
 
@@ -432,10 +507,12 @@ function TemplateCard({ template, onSelect, onEdit, onClone, onDelete, emoji, is
   return (
     <div
       className={cn(
-        "p-4 rounded-lg shadow-sm transition-all duration-150 ease-in-out cursor-pointer flex flex-col gap-2",
+        "p-4 rounded-lg shadow-sm transition-all duration-150 ease-in-out flex flex-col gap-2",
+        template.id === AUTO_TEMPLATE_ID ? "cursor-default" : "cursor-pointer",
         isSelected
           ? "border border-blue-500 ring-2 ring-blue-500 bg-blue-50"
           : "border border-neutral-200 bg-white hover:border-neutral-300",
+        isSpecial && "border-2",
       )}
       onClick={handleCardClick}
     >
@@ -468,6 +545,13 @@ function TemplateCard({ template, onSelect, onEdit, onClone, onDelete, emoji, is
           {isSelected ? "Default" : "Set as default"}
         </Button>
       </div>
+      
+      {/* Hint text for Auto template when selected */}
+      {isSelected && template.id === AUTO_TEMPLATE_ID && (
+        <div className="text-xs text-blue-600 bg-blue-50 px-3 py-2 rounded-md border border-blue-200 mt-2">
+          <Trans>✨ Summaries will automatically use the best-fit template based on meeting content</Trans>
+        </div>
+      )}
     </div>
   );
 }
