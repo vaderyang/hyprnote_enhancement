@@ -219,10 +219,10 @@ msgstr "(Optional)"
 #. placeholder {0}: disabled ? "Wait..." : "Play again"
 #. placeholder {0}: disabled ? "Wait..." : "Play video"
 #. placeholder {0}: disabled ? "Wait..." : isHovered ? (isCompact ? "Resume" : "Resume") : (isCompact ? "Ended" : "Ended")
-#: src/components/editor-area/note-header/listen-button.tsx:196
-#: src/components/editor-area/note-header/listen-button.tsx:220
-#: src/components/editor-area/note-header/listen-button.tsx:240
-#: src/components/settings/views/templates.tsx:236
+#: src/components/editor-area/note-header/listen-button.tsx:203
+#: src/components/editor-area/note-header/listen-button.tsx:227
+#: src/components/editor-area/note-header/listen-button.tsx:247
+#: src/components/settings/views/templates.tsx:237
 msgid "{0}"
 msgstr "{0}"
 
@@ -248,6 +248,10 @@ msgstr "{title}"
 msgid "<0>Create Note</0>"
 msgstr "<0>Create Note</0>"
 
+#: src/components/settings/views/templates.tsx:509
+msgid "✨ Summaries will automatically use the best-fit template based on meeting content"
+msgstr "✨ Summaries will automatically use the best-fit template based on meeting content"
+
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:71
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:113
 msgid "Access granted"
@@ -263,7 +267,7 @@ msgstr "Access Granted"
 #~ msgid "Access multiple AI models through OpenRouter with your API key"
 #~ msgstr "Access multiple AI models through OpenRouter with your API key"
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:273
+#: src/components/settings/components/ai/llm-custom-view.tsx:335
 msgid "Access Netis AI Model Service"
 msgstr "Access Netis AI Model Service"
 
@@ -321,6 +325,10 @@ msgstr "API Base URL"
 msgid "API Key"
 msgstr "API Key"
 
+#: src/components/settings/components/ai/llm-custom-view.tsx:535
+msgid "API key not configured. Please set VITE_NETIS_GLOBAL_API_KEY environment variable."
+msgstr "API key not configured. Please set VITE_NETIS_GLOBAL_API_KEY environment variable."
+
 #: src/components/settings/views/profile.tsx:168
 msgid "Apple"
 msgstr "Apple"
@@ -338,7 +346,7 @@ msgstr "Audio Permissions"
 msgid "Autonomy Selector"
 msgstr "Autonomy Selector"
 
-#: src/components/welcome-modal/index.tsx:369
+#: src/components/welcome-modal/index.tsx:344
 msgid "Back"
 msgstr "Back"
 
@@ -356,7 +364,7 @@ msgstr "Base URL"
 #~ msgstr "Billing & License"
 
 #: src/components/settings/components/templates-sidebar.tsx:68
-#: src/components/settings/views/templates.tsx:339
+#: src/components/settings/views/templates.tsx:366
 msgid "Built-in Templates"
 msgstr "Built-in Templates"
 
@@ -480,8 +488,8 @@ msgid "Create Note"
 msgstr "Create Note"
 
 #: src/components/settings/views/templates.tsx:329
-msgid "Create your first template to get started"
-msgstr "Create your first template to get started"
+#~ msgid "Create your first template to get started"
+#~ msgstr "Create your first template to get started"
 
 #: src/components/settings/views/ai-llm.tsx:671
 #: src/components/settings/views/ai-stt.tsx:120
@@ -715,7 +723,7 @@ msgstr "Language for AI-generated summaries"
 msgid "Learn more about AI autonomy"
 msgstr "Learn more about AI autonomy"
 
-#: src/components/settings/views/templates.tsx:289
+#: src/components/settings/views/templates.tsx:290
 msgid "Learn more about templates"
 msgstr "Learn more about templates"
 
@@ -728,7 +736,8 @@ msgstr "License"
 msgid "LinkedIn username"
 msgstr "LinkedIn username"
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:348
+#: src/components/settings/components/ai/llm-custom-view.tsx:410
+#: src/components/settings/components/ai/llm-custom-view.tsx:503
 msgid "Loading available models..."
 msgstr "Loading available models..."
 
@@ -740,7 +749,7 @@ msgstr "Loading events..."
 msgid "Loading models..."
 msgstr "Loading models..."
 
-#: src/components/settings/views/templates.tsx:260
+#: src/components/settings/views/templates.tsx:261
 msgid "Loading templates..."
 msgstr "Loading templates..."
 
@@ -779,7 +788,8 @@ msgstr "Members"
 msgid "Microphone Access"
 msgstr "Microphone Access"
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:342
+#: src/components/settings/components/ai/llm-custom-view.tsx:404
+#: src/components/settings/components/ai/llm-custom-view.tsx:498
 #: src/components/settings/components/ai/stt-view-remote.tsx:179
 #: src/components/welcome-modal/custom-endpoint-view.tsx:315
 #: src/components/welcome-modal/custom-endpoint-view.tsx:382
@@ -803,10 +813,14 @@ msgstr "My Profile"
 msgid "My Templates"
 msgstr "My Templates"
 
-#: src/components/settings/components/ai/llm-custom-view.tsx:269
+#: src/components/settings/components/ai/llm-custom-view.tsx:331
 #: src/components/settings/views/ai-stt.tsx:120
 msgid "Netis"
 msgstr "Netis"
+
+#: src/components/settings/components/ai/llm-custom-view.tsx:471
+msgid "Netis Global"
+msgstr "Netis Global"
 
 #: src/components/settings/components/ai/stt-view-remote.tsx:101
 msgid "Netis Speech-to-Text endpoint"
@@ -850,8 +864,8 @@ msgid "No tags selected"
 msgstr "No tags selected"
 
 #: src/components/settings/views/templates.tsx:326
-msgid "No templates yet"
-msgstr "No templates yet"
+#~ msgid "No templates yet"
+#~ msgstr "No templates yet"
 
 #: src/components/left-sidebar/events-list.tsx:94
 msgid "No upcoming events"
@@ -928,6 +942,10 @@ msgstr "Owner"
 #: src/components/share-and-permission/participants-selector.tsx:35
 msgid "people"
 msgstr "people"
+
+#: src/components/settings/components/ai/llm-custom-view.tsx:475
+msgid "Pre-configured Netis Global AI Service"
+msgstr "Pre-configured Netis Global AI Service"
 
 #: src/components/share-and-permission/publish.tsx:15
 msgid "Publish your note"
@@ -1017,7 +1035,7 @@ msgstr "Sections"
 msgid "Select a provider above to configure"
 msgstr "Select a provider above to configure"
 
-#: src/components/settings/views/templates.tsx:294
+#: src/components/settings/views/templates.tsx:295
 msgid "Select a template to enhance your meeting notes"
 msgstr "Select a template to enhance your meeting notes"
 
@@ -1102,11 +1120,11 @@ msgstr "Spoken languages"
 msgid "Start automatically at login"
 msgstr "Start automatically at login"
 
-#: src/components/editor-area/note-header/listen-button.tsx:167
+#: src/components/editor-area/note-header/listen-button.tsx:174
 msgid "Start recording"
 msgstr "Start recording"
 
-#: src/components/editor-area/note-header/listen-button.tsx:409
+#: src/components/editor-area/note-header/listen-button.tsx:416
 msgid "Stop"
 msgstr "Stop"
 
@@ -1171,6 +1189,10 @@ msgstr "This is a short description of your company."
 #: src/components/settings/views/profile.tsx:163
 msgid "This is the name of the company you work for."
 msgstr "This is the name of the company you work for."
+
+#: src/components/settings/components/ai/llm-custom-view.tsx:491
+msgid "This provider is pre-configured with Netis Global credentials. Simply select a model to get started."
+msgstr "This provider is pre-configured with Netis Global credentials. Simply select a model to get started."
 
 #: src/components/finder/views/calendar-view.tsx:64
 msgid "Today"
@@ -1294,6 +1316,10 @@ msgstr "Your API key for Obsidian local-rest-api plugin."
 #~ msgid "Your authentication key for accessing the STT service"
 #~ msgstr "Your authentication key for accessing the STT service"
 
+#: src/components/settings/views/templates.tsx:339
+msgid "Your Custom Templates"
+msgstr "Your Custom Templates"
+
 #: src/components/settings/views/profile.tsx:213
 msgid "Your LinkedIn username (the part after linkedin.com/in/)"
 msgstr "Your LinkedIn username (the part after linkedin.com/in/)"
@@ -1303,6 +1329,6 @@ msgid "Your Name"
 msgstr "Your Name"
 
 #: src/components/settings/components/templates-sidebar.tsx:45
-#: src/components/settings/views/templates.tsx:275
+#: src/components/settings/views/templates.tsx:276
 msgid "Your Templates"
 msgstr "Your Templates"

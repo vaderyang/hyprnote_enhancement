@@ -128,11 +128,14 @@ impl<R: tauri::Runtime, T: tauri::Manager<R>> ConnectorPluginExt<R> for T {
         let hyprcloud_enabled = self.get_hyprcloud_enabled()?;
 
         if custom_enabled {
-            // If HyprCloud is enabled, override with HyprCloud connection
+            // HyprCloud is disabled - if it was previously enabled, redirect to Netis Global
             if hyprcloud_enabled {
+                // Use Netis Global endpoint instead of HyprCloud
+                let netis_api_key = std::env::var("VITE_NETIS_GLOBAL_API_KEY")
+                    .ok();
                 let conn = ConnectionLLM::Custom(Connection {
-                    api_base: "https://pro.hyprnote.com".to_string(),
-                    api_key: None,
+                    api_base: "https://llm.netis.io/v1".to_string(),
+                    api_key: netis_api_key,
                 });
                 Ok(conn)
             } else {

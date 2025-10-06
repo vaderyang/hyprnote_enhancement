@@ -23,7 +23,6 @@ export default function TemplatesView() {
 
   const [viewState, setViewState] = useState<ViewState>("list");
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
-  const [autoTemplate, setAutoTemplate] = useState<Template | null>(null);
   const [runningLogTemplate, setRunningLogTemplate] = useState<Template | null>(null);
   const [customTemplates, setCustomTemplates] = useState<Template[]>([]);
   const [builtinTemplates, setBuiltinTemplates] = useState<Template[]>([]);
@@ -72,22 +71,20 @@ export default function TemplatesView() {
     try {
       setLoading(true);
 
-      // Use getAllTemplatesForSelection to get Auto option included
+      // Get all templates but exclude Auto from Settings view
       const allTemplates = await TemplateService.getAllTemplatesForSelection();
       
-      // Separate Auto, Running Log, and other templates
-      const auto = allTemplates.find(t => t.id === AUTO_TEMPLATE_ID);
+      // Separate Running Log and other templates (exclude Auto from Settings)
       const runningLog = allTemplates.find(t => t.id === RUNNING_LOG_ID);
       const others = allTemplates.filter(t => 
         t.id !== AUTO_TEMPLATE_ID && t.id !== RUNNING_LOG_ID
       );
 
-      setAutoTemplate(auto || null);
       setRunningLogTemplate(runningLog || null);
       setCustomTemplates(others.filter(t => !t.tags?.includes("builtin")));
       setBuiltinTemplates(others.filter(t => t.tags?.includes("builtin")));
 
-      console.log("loaded templates - auto:", auto, "runningLog:", runningLog, "custom:", others.filter(t => !t.tags?.includes("builtin")), "builtin:", others.filter(t => t.tags?.includes("builtin")));
+      console.log("loaded templates - runningLog:", runningLog, "custom:", others.filter(t => !t.tags?.includes("builtin")), "builtin:", others.filter(t => t.tags?.includes("builtin")));
     } catch (error) {
       console.error("Failed to load templates:", error);
     } finally {
@@ -305,20 +302,8 @@ export default function TemplatesView() {
           </Button>
         </div>
 
-        {/* Special Templates: Auto and Running Log */}
+        {/* Special Template: Running Log */}
         <div className="space-y-2">
-          {/* Auto Template */}
-          {autoTemplate && (
-            <TemplateCard
-              key={autoTemplate.id}
-              template={autoTemplate}
-              onSelect={() => handleTemplateSelect(autoTemplate)}
-              onEdit={() => {}} // Auto template is not editable
-              isSelected={selectedTemplateId === AUTO_TEMPLATE_ID}
-              isSpecial={true}
-            />
-          )}
-
           {/* Running Log Template */}
           {runningLogTemplate && (
             <TemplateCard
@@ -502,13 +487,6 @@ function TemplateCard({ template, onSelect, onEdit, onClone, onDelete, emoji, is
           {isSelected ? "Default" : "Set as default"}
         </Button>
       </div>
-      
-      {/* Hint text for Auto template when selected */}
-      {isSelected && template.id === AUTO_TEMPLATE_ID && (
-        <div className="text-xs text-blue-600 bg-blue-50 px-3 py-2 rounded-md border border-blue-200 mt-2">
-          <Trans>✨ Summaries will automatically use the best-fit template based on meeting content</Trans>
-        </div>
-      )}
     </div>
   );
 }
