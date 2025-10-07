@@ -77,9 +77,9 @@ function LLMCustomViewInner({
   // Watch forms and submit when complete and valid
   useEffect(() => {
     const subscription = openaiForm.watch((values) => {
-      // Only auto-configure if user opened this accordion OR custom is already enabled
+      // Only auto-configure when the OpenAI accordion is open and credentials are valid
       if (
-        (userOpenedAccordion === "openai" || customLLMEnabled.data)
+        openAccordion === "openai"
         && values.api_key && values.api_key.startsWith("sk-") && values.model
       ) {
         setHyprCloudEnabledMutation.mutate(false);
@@ -92,13 +92,13 @@ function LLMCustomViewInner({
       }
     });
     return () => subscription.unsubscribe();
-  }, [openaiForm, configureCustomEndpoint, userOpenedAccordion, customLLMEnabled.data, setHyprCloudEnabledMutation]);
+  }, [openAccordion, openaiForm, configureCustomEndpoint, setHyprCloudEnabledMutation]);
 
   useEffect(() => {
     const subscription = geminiForm.watch((values) => {
-      // Only auto-configure if user opened this accordion OR custom is already enabled
+      // Only auto-configure when the Gemini accordion is open and credentials are valid
       if (
-        (userOpenedAccordion === "gemini" || customLLMEnabled.data)
+        openAccordion === "gemini"
         && values.api_key && values.api_key.startsWith("AIza") && values.model
       ) {
         setHyprCloudEnabledMutation.mutate(false);
@@ -111,13 +111,13 @@ function LLMCustomViewInner({
       }
     });
     return () => subscription.unsubscribe();
-  }, [geminiForm, configureCustomEndpoint, userOpenedAccordion, customLLMEnabled.data, setHyprCloudEnabledMutation]);
+  }, [openAccordion, geminiForm, configureCustomEndpoint, setHyprCloudEnabledMutation]);
 
   useEffect(() => {
     const subscription = openrouterForm.watch((values) => {
-      // Only auto-configure if user opened this accordion OR custom is already enabled
+      // Only auto-configure when the OpenRouter accordion is open and credentials are valid
       if (
-        (userOpenedAccordion === "openrouter" || customLLMEnabled.data)
+        openAccordion === "openrouter"
         && values.api_key && values.api_key.startsWith("sk-") && values.model
       ) {
         setHyprCloudEnabledMutation.mutate(false);
@@ -130,19 +130,17 @@ function LLMCustomViewInner({
       }
     });
     return () => subscription.unsubscribe();
-  }, [openrouterForm, configureCustomEndpoint, userOpenedAccordion, customLLMEnabled.data, setHyprCloudEnabledMutation]);
+  }, [openAccordion, openrouterForm, configureCustomEndpoint, setHyprCloudEnabledMutation]);
 
   useEffect(() => {
     const subscription = customForm.watch((values) => {
-      // Only auto-configure if user opened this accordion OR custom is already enabled
-      // Also exclude HyprCloud URL from being stored as 'others'
+      // Only auto-configure when the Netis (others) accordion is open
       if (
-        (userOpenedAccordion === "others" || customLLMEnabled.data)
+        openAccordion === "others"
         && values.api_base && values.api_base !== "https://pro.hyprnote.com" && values.model
       ) {
         try {
           setHyprCloudEnabledMutation.mutate(false);
-          console.log("we are now setting the 'others' endpoint");
           // Basic URL validation
           new URL(values.api_base);
           configureCustomEndpoint({
@@ -157,7 +155,7 @@ function LLMCustomViewInner({
       }
     });
     return () => subscription.unsubscribe();
-  }, [customForm, configureCustomEndpoint, userOpenedAccordion, customLLMEnabled.data, setHyprCloudEnabledMutation]);
+  }, [openAccordion, customForm, configureCustomEndpoint, setHyprCloudEnabledMutation]);
 
   const handleAccordionClick = (provider: "openai" | "gemini" | "openrouter" | "others" | "netis-global") => {
     try {

@@ -611,33 +611,45 @@ function LlmAIInner() {
   }, [othersApiBaseQuery.data, othersApiKeyQuery.data, othersModelQuery.data, customForm]);
 
   useEffect(() => {
-    if (openaiModelQuery.data && openAccordion === "openai") {
-      openaiForm.setValue("model", openaiModelQuery.data);
+    if (openAccordion === "openai" && openaiModelQuery.data) {
+      if (openaiForm.getValues("model") !== openaiModelQuery.data) {
+        openaiForm.setValue("model", openaiModelQuery.data);
+      }
     }
   }, [openaiModelQuery.data, openAccordion, openaiForm]);
 
   useEffect(() => {
-    if (geminiModelQuery.data && openAccordion === "gemini") {
-      geminiForm.setValue("model", geminiModelQuery.data);
+    if (openAccordion === "gemini" && geminiModelQuery.data) {
+      if (geminiForm.getValues("model") !== geminiModelQuery.data) {
+        geminiForm.setValue("model", geminiModelQuery.data);
+      }
     }
   }, [geminiModelQuery.data, openAccordion, geminiForm]);
 
   useEffect(() => {
-    if (openrouterModelQuery.data && openAccordion === "openrouter") {
-      openrouterForm.setValue("model", openrouterModelQuery.data);
+    if (openAccordion === "openrouter" && openrouterModelQuery.data) {
+      if (openrouterForm.getValues("model") !== openrouterModelQuery.data) {
+        openrouterForm.setValue("model", openrouterModelQuery.data);
+      }
     }
   }, [openrouterModelQuery.data, openAccordion, openrouterForm]);
 
   useEffect(() => {
     if (openAccordion === "others") {
       if (othersApiBaseQuery.data && othersApiBaseQuery.data !== "https://pro.hyprnote.com") {
-        customForm.setValue("api_base", othersApiBaseQuery.data);
+        if (customForm.getValues("api_base") !== othersApiBaseQuery.data) {
+          customForm.setValue("api_base", othersApiBaseQuery.data);
+        }
       }
       if (othersApiKeyQuery.data) {
-        customForm.setValue("api_key", othersApiKeyQuery.data);
+        if (customForm.getValues("api_key") !== othersApiKeyQuery.data) {
+          customForm.setValue("api_key", othersApiKeyQuery.data);
+        }
       }
       if (othersModelQuery.data) {
-        customForm.setValue("model", othersModelQuery.data);
+        if (customForm.getValues("model") !== othersModelQuery.data) {
+          customForm.setValue("model", othersModelQuery.data);
+        }
       }
     }
   }, [openAccordion, othersApiBaseQuery.data, othersApiKeyQuery.data, othersModelQuery.data, customForm]);
