@@ -66,7 +66,7 @@ export function LLMCustomView({
       }
     });
     return () => subscription.unsubscribe();
-  }, [openaiForm, configureCustomEndpoint, userOpenedAccordion, customLLMEnabled.data]);
+  }, [openaiForm, configureCustomEndpoint, userOpenedAccordion, customLLMEnabled.data, setHyprCloudEnabledMutation]);
 
   useEffect(() => {
     const subscription = geminiForm.watch((values) => {
@@ -85,7 +85,7 @@ export function LLMCustomView({
       }
     });
     return () => subscription.unsubscribe();
-  }, [geminiForm, configureCustomEndpoint, userOpenedAccordion, customLLMEnabled.data]);
+  }, [geminiForm, configureCustomEndpoint, userOpenedAccordion, customLLMEnabled.data, setHyprCloudEnabledMutation]);
 
   useEffect(() => {
     const subscription = openrouterForm.watch((values) => {
@@ -104,7 +104,7 @@ export function LLMCustomView({
       }
     });
     return () => subscription.unsubscribe();
-  }, [openrouterForm, configureCustomEndpoint, userOpenedAccordion, customLLMEnabled.data]);
+  }, [openrouterForm, configureCustomEndpoint, userOpenedAccordion, customLLMEnabled.data, setHyprCloudEnabledMutation]);
 
   useEffect(() => {
     const subscription = customForm.watch((values) => {
@@ -131,7 +131,7 @@ export function LLMCustomView({
       }
     });
     return () => subscription.unsubscribe();
-  }, [customForm, configureCustomEndpoint, userOpenedAccordion, customLLMEnabled.data]);
+  }, [customForm, configureCustomEndpoint, userOpenedAccordion, customLLMEnabled.data, setHyprCloudEnabledMutation]);
 
   const handleAccordionClick = (provider: "openai" | "gemini" | "openrouter" | "others" | "netis-global") => {
     // Track that user explicitly opened this accordion
