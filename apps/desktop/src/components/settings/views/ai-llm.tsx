@@ -3,7 +3,7 @@ import { Trans } from "@lingui/react/macro";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { open } from "@tauri-apps/plugin-shell";
 import { InfoIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -29,6 +29,63 @@ import { cn } from "@hypr/ui/lib/utils";
 // showLlmModelDownloadToast removed - local models hidden for Netis deployment
 
 import { LLMCustomView } from "../components/ai/llm-custom-view";
+
+// Error boundary to wrap entire LLM settings view
+class LLMSettingsErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error?: any; info?: React.ErrorInfo; debug?: any }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError(_error: unknown) {
+    return { hasError: true };
+  }
+  componentDidCatch(error: any, info: React.ErrorInfo) {
+    let debug: any = {};
+    try {
+      const hasNetisGlobal = Boolean(String(import.meta.env.VITE_NETIS_GLOBAL_API_KEY ?? "").trim());
+      debug = {
+        time: new Date().toISOString(),
+        location: typeof window !== "undefined" ? window.location.href : undefined,
+        env: { hasNetisGlobal },
+        session: {
+          netisGlobalDisabled: typeof sessionStorage !== "undefined" ? sessionStorage.getItem("netisGlobalDisabled") : undefined,
+          modelDownloadToastDismissed: typeof sessionStorage !== "undefined" ? sessionStorage.getItem("model-download-toast-dismissed") : undefined,
+        },
+      };
+    } catch {}
+
+    console.error("LLM Settings crashed", error, info, debug);
+    this.setState({ hasError: true, error, info, debug });
+  }
+  render() {
+    if (this.state.hasError) {
+      const errMsg = (this.state.error && (this.state.error.message || String(this.state.error))) || "Unknown error";
+      return (
+        <div className="space-y-2 p-4 border border-red-200 rounded-md bg-red-50">
+          <div className="text-sm font-medium text-red-800">LLM Settings failed to render.</div>
+          <div className="text-xs text-red-700">Please try closing and reopening Settings. Enhancing may still work; this only affects the Settings UI.</div>
+          <div className="text-xs text-neutral-700">
+            <div className="font-semibold">Error:</div>
+            <pre className="whitespace-pre-wrap break-all">{errMsg}</pre>
+          </div>
+          {this.state.info?.componentStack && (
+            <div className="text-xs text-neutral-600">
+              <div className="font-semibold">Component Stack:</div>
+              <pre className="whitespace-pre-wrap break-all">{this.state.info.componentStack}</pre>
+            </div>
+          )}
+          {this.state.debug && (
+            <div className="text-xs text-neutral-700">
+              <div className="font-semibold">Debug:</div>
+              <pre className="whitespace-pre-wrap break-all">{JSON.stringify(this.state.debug, null, 2)}</pre>
+            </div>
+          )}
+        </div>
+      );
+    }
+    return this.props.children as any;
+  }
+}
 // LLMLocalView import removed - local view hidden for Netis deployment
 import {
   ConfigureEndpointConfig,
@@ -111,7 +168,7 @@ const specificityLevels = {
   },
 } as const;
 
-export default function LlmAI() {
+function LlmAIInner() {
   const queryClient = useQueryClient();
   // activeTab state removed - tabs hidden for Netis deployment
   // const [activeTab, setActiveTab] = useState<"default" | "custom">("default");
@@ -814,5 +871,13 @@ export default function LlmAI() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function LlmAI() {
+  return (
+    <LLMSettingsErrorBoundary>
+      <LlmAIInner />
+    </LLMSettingsErrorBoundary>
   );
 }
