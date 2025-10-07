@@ -171,10 +171,9 @@ export function LLMCustomView({
   useEffect(() => {
     if (openAccordion === "netis-global" && customLLMEnabled.data) {
       // Check if we have saved "others" settings that match Netis Global endpoint
-      const savedApiBase = customForm.watch("api_base");
-      const savedModel = customForm.watch("model");
-      if (savedApiBase === netisGlobalApiBase && savedModel) {
-        setNetisGlobalSelectedModel(savedModel);
+      const values = customForm.getValues();
+      if (values.api_base === netisGlobalApiBase && values.model) {
+        setNetisGlobalSelectedModel(values.model);
       }
     }
   }, [openAccordion, customLLMEnabled.data, customForm, netisGlobalApiBase]);
@@ -183,44 +182,52 @@ export function LLMCustomView({
   const netisGlobalModels = useQuery({
     queryKey: ["netis-global-models"],
     queryFn: async (): Promise<string[]> => {
-      const url = new URL(netisGlobalApiBase);
-      url.pathname += url.pathname.endsWith("/") ? "models" : "/models";
+      try {
+        const url = new URL(netisGlobalApiBase);
+        url.pathname += url.pathname.endsWith("/") ? "models" : "/models";
 
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-      };
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+        };
 
-      if (netisGlobalApiKey && netisGlobalApiKey.trim().length > 0) {
-        headers["Authorization"] = `Bearer ${netisGlobalApiKey}`;
-      }
+        if (netisGlobalApiKey && netisGlobalApiKey.trim().length > 0) {
+          headers["Authorization"] = `Bearer ${netisGlobalApiKey}`;
+        }
 
-      const response = await tauriFetch(url.toString(), {
-        method: "GET",
-        headers,
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-
-      if (!data.data || !Array.isArray(data.data)) {
-        throw new Error("Invalid response format");
-      }
-
-      const models = data.data
-        .map((model: any) => model.id)
-        .filter((id: string) => {
-          const excludeKeywords = ["dall-e", "codex", "whisper"];
-          return !excludeKeywords.some(keyword => id.includes(keyword));
+        const response = await tauriFetch(url.toString(), {
+          method: "GET",
+          headers,
         });
 
-      return models;
+        if (!response.ok) {
+          console.error(`Failed to fetch Netis Global models: HTTP ${response.status}`);
+          return [];
+        }
+
+        const data = await response.json();
+
+        if (!data.data || !Array.isArray(data.data)) {
+          console.error("Invalid response format from Netis Global API");
+          return [];
+        }
+
+        const models = data.data
+          .map((model: any) => model.id)
+          .filter((id: string) => {
+            const excludeKeywords = ["dall-e", "codex", "whisper"];
+            return !excludeKeywords.some(keyword => id.includes(keyword));
+          });
+
+        return models;
+      } catch (error) {
+        console.error("Error fetching Netis Global models:", error);
+        return [];
+      }
     },
-    enabled: Boolean(netisGlobalApiKey && openAccordion === "netis-global"),
+    enabled: Boolean(netisGlobalApiKey && netisGlobalApiKey.trim().length > 0 && openAccordion === "netis-global"),
     retry: 1,
     refetchInterval: false,
+    throwOnError: false,
   });
 
   // Auto-configure Netis Global when model is selected
@@ -313,6 +320,7 @@ export function LLMCustomView({
     })(),
     retry: 1,
     refetchInterval: false,
+    throwOnError: false,
   });
 
   return (
@@ -510,7 +518,15 @@ export function LLMCustomView({
                     <label className="text-sm font-medium">
                       <Trans>Model</Trans>
                     </label>
-                    {netisGlobalModels.isLoading
+                    {!netisGlobalApiKey
+                      ? (
+                        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                          <p className="text-xs text-yellow-700">
+                            <Trans>API key not configured. Please set VITE_NETIS_GLOBAL_API_KEY environment variable.</Trans>
+                          </p>
+                        </div>
+                      )
+                      : netisGlobalModels.isLoading
                       ? (
                         <div className="py-2 text-sm text-neutral-500">
                           <Trans>Loading available models...</Trans>
@@ -534,19 +550,20 @@ export function LLMCustomView({
                           </SelectContent>
                         </Select>
                       )
-                      : netisGlobalApiKey
-                      ? (
-                        <Input
-                          value={netisGlobalSelectedModel}
-                          onChange={(e) => setNetisGlobalSelectedModel(e.target.value)}
-                          placeholder="qwen-3-coder-480b"
-                        />
-                      )
                       : (
-                        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                          <p className="text-xs text-yellow-700">
-                            <Trans>API key not configured. Please set VITE_NETIS_GLOBAL_API_KEY environment variable.</Trans>
-                          </p>
+                        <div className="space-y-2">
+                          {netisGlobalModels.error && (
+                            <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                              <p className="text-xs text-red-700">
+                                <Trans>Failed to load models. Please enter model name manually.</Trans>
+                              </p>
+                            </div>
+                          )}
+                          <Input
+                            value={netisGlobalSelectedModel}
+                            onChange={(e) => setNetisGlobalSelectedModel(e.target.value)}
+                            placeholder="qwen-3-coder-480b"
+                          />
                         </div>
                       )}
                   </div>
