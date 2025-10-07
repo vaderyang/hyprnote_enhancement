@@ -61,24 +61,9 @@ export interface STTModel {
 }
 
 export type ConfigureEndpointConfig = {
-  provider: "others" | "openai" | "gemini" | "openrouter" | "hyprcloud" | "netis-global";
+  provider: "others" | "hyprcloud" | "netis-global";
   api_base: string;
   api_key?: string;
-  model: string;
-};
-
-export type OpenAIFormValues = {
-  api_key: string;
-  model: string;
-};
-
-export type GeminiFormValues = {
-  api_key: string;
-  model: string;
-};
-
-export type OpenRouterFormValues = {
-  api_key: string;
   model: string;
 };
 
@@ -115,7 +100,7 @@ export interface SharedLLMProps {
   // Model State
   downloadingModels: Set<string>;
   llmModelsState: LLMModel[];
-  setOpenAccordion: (accordion: "others" | "openai" | "gemini" | "openrouter" | "netis-global" | null) => void;
+  setOpenAccordion: (accordion: "others" | "netis-global" | null) => void;
   // Functions
   handleModelDownload: (modelKey: string) => Promise<void>;
 }
@@ -125,18 +110,15 @@ export interface SharedCustomEndpointProps extends SharedLLMProps {
   configureCustomEndpoint: (config: ConfigureEndpointConfig) => void;
 
   // Accordion State
-  openAccordion: "others" | "openai" | "gemini" | "openrouter" | "netis-global" | null;
-  setOpenAccordion: (accordion: "others" | "openai" | "gemini" | "openrouter" | "netis-global" | null) => void;
+  openAccordion: "others" | "netis-global" | null;
+  setOpenAccordion: (accordion: "others" | "netis-global" | null) => void;
 
   // Queries
   customLLMConnection: UseQueryResult<Connection | null>;
   getCustomLLMModel: UseQueryResult<string | null>;
   // availableLLMModels: UseQueryResult<string[]>;
 
-  // Form instances for each provider
-  openaiForm: UseFormReturn<OpenAIFormValues>;
-  geminiForm: UseFormReturn<GeminiFormValues>;
-  openrouterForm: UseFormReturn<OpenRouterFormValues>;
+  // Form instance for custom/Netis provider
   customForm: UseFormReturn<CustomFormValues>;
 
   // Helper functions

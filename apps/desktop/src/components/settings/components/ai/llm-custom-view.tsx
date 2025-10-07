@@ -15,6 +15,7 @@ import {
 import { Input } from "@hypr/ui/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { toast } from "@hypr/ui/components/ui/toast";
+import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
 import React, { useState } from "react";
 import { SharedCustomEndpointProps } from "./shared";
@@ -25,22 +26,48 @@ import { SharedCustomEndpointProps } from "./shared";
 // const openrouterModels = [...];
 
 // Simple error boundary to prevent the whole Settings page from crashing
-class SimpleErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
+class SimpleErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error?: any; copied?: boolean }> {
   constructor(props: { children: React.ReactNode }) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, copied: false };
   }
   static getDerivedStateFromError(_error: unknown) {
     return { hasError: true };
   }
-  componentDidCatch(error: unknown) {
+  componentDidCatch(error: any) {
     console.error("Error in Netis Global panel:", error);
+    this.setState({ error });
   }
+  
+  copyErrorInfo = () => {
+    try {
+      const errMsg = (this.state.error && (this.state.error.message || String(this.state.error))) || "Unknown error";
+      const debugInfo = `=== Netis Global Panel Error ===\n\nError: ${errMsg}\n\nStack: ${this.state.error?.stack || 'N/A'}`;
+      
+      navigator.clipboard.writeText(debugInfo).then(() => {
+        this.setState({ copied: true });
+        setTimeout(() => this.setState({ copied: false }), 2000);
+      });
+    } catch (err) {
+      console.error("Failed to copy error info:", err);
+    }
+  };
+  
   render() {
     if (this.state.hasError) {
       return (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-          <p className="text-xs text-red-700">Failed to render Netis Global settings. Please try again or use Netis provider.</p>
+        <div className="p-3 bg-red-50 border border-red-200 rounded-md space-y-2">
+          <div className="flex justify-between items-start">
+            <p className="text-xs text-red-700">Failed to render Netis Global settings. Please try again or use Netis provider.</p>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={this.copyErrorInfo}
+              className="h-6 text-xs px-2 ml-2 flex-shrink-0"
+            >
+              {this.state.copied ? "✓" : "Copy"}
+            </Button>
+          </div>
         </div>
       );
     }
@@ -57,9 +84,6 @@ function LLMCustomViewInner({
   configureCustomEndpoint,
   openAccordion,
   setOpenAccordion,
-  openaiForm,
-  geminiForm,
-  openrouterForm,
   customForm,
   isLocalEndpoint,
   hyprCloudEnabled,
@@ -74,63 +98,6 @@ function LLMCustomViewInner({
       setOpenAccordion(null);
     }
   }, [hyprCloudEnabled?.data, setOpenAccordion]);
-  // Watch forms and submit when complete and valid
-  useEffect(() => {
-    const subscription = openaiForm.watch((values) => {
-      // Only auto-configure when the OpenAI accordion is open and credentials are valid
-      if (
-        openAccordion === "openai"
-        && values.api_key && values.api_key.startsWith("sk-") && values.model
-      ) {
-        setHyprCloudEnabledMutation.mutate(false);
-        configureCustomEndpoint({
-          provider: "openai",
-          api_base: "", // Will be auto-set
-          api_key: values.api_key,
-          model: values.model,
-        });
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [openAccordion, openaiForm, configureCustomEndpoint, setHyprCloudEnabledMutation]);
-
-  useEffect(() => {
-    const subscription = geminiForm.watch((values) => {
-      // Only auto-configure when the Gemini accordion is open and credentials are valid
-      if (
-        openAccordion === "gemini"
-        && values.api_key && values.api_key.startsWith("AIza") && values.model
-      ) {
-        setHyprCloudEnabledMutation.mutate(false);
-        configureCustomEndpoint({
-          provider: "gemini",
-          api_base: "", // Will be auto-set
-          api_key: values.api_key,
-          model: values.model,
-        });
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [openAccordion, geminiForm, configureCustomEndpoint, setHyprCloudEnabledMutation]);
-
-  useEffect(() => {
-    const subscription = openrouterForm.watch((values) => {
-      // Only auto-configure when the OpenRouter accordion is open and credentials are valid
-      if (
-        openAccordion === "openrouter"
-        && values.api_key && values.api_key.startsWith("sk-") && values.model
-      ) {
-        setHyprCloudEnabledMutation.mutate(false);
-        configureCustomEndpoint({
-          provider: "openrouter",
-          api_base: "", // Will be auto-set
-          api_key: values.api_key,
-          model: values.model,
-        });
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [openAccordion, openrouterForm, configureCustomEndpoint, setHyprCloudEnabledMutation]);
 
   useEffect(() => {
     const subscription = customForm.watch((values) => {
@@ -157,7 +124,7 @@ function LLMCustomViewInner({
     return () => subscription.unsubscribe();
   }, [openAccordion, customForm, configureCustomEndpoint, setHyprCloudEnabledMutation]);
 
-  const handleAccordionClick = (provider: "openai" | "gemini" | "openrouter" | "others" | "netis-global") => {
+  const handleAccordionClick = (provider: "others" | "netis-global") => {
     try {
       // Track that user explicitly opened this accordion
       setUserOpenedAccordion(provider);

@@ -31,22 +31,7 @@ interface WelcomeModalProps {
   onClose: () => void;
 }
 
-// Form schemas
-const openaiSchema = z.object({
-  api_key: z.string().min(1, "API key is required").startsWith("sk-", "OpenAI API key must start with 'sk-'"),
-  model: z.string().min(1, "Model selection is required"),
-});
-
-const geminiSchema = z.object({
-  api_key: z.string().min(1, "API key is required").startsWith("AIza", "Gemini API key must start with 'AIza'"),
-  model: z.string().min(1, "Model selection is required"),
-});
-
-const openrouterSchema = z.object({
-  api_key: z.string().min(1, "API key is required").startsWith("sk-", "OpenRouter API key must start with 'sk-'"),
-  model: z.string().min(1, "Model selection is required"),
-});
-
+// Form schemas - only custom/Netis provider supported
 const customSchema = z.object({
   api_base: z.string().url("Must be a valid URL"),
   api_key: z.string().optional(),
@@ -73,50 +58,19 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   });
   */
 
-  const openaiForm = useForm<{ api_key: string; model: string }>({
-    resolver: zodResolver(openaiSchema),
-    mode: "onChange",
-    defaultValues: {
-      api_key: "",
-      model: "",
-    },
-  });
-
-  const geminiForm = useForm<{ api_key: string; model: string }>({
-    resolver: zodResolver(geminiSchema),
-    mode: "onChange",
-    defaultValues: {
-      api_key: "",
-      model: "",
-    },
-  });
-
-  const openrouterForm = useForm<{ api_key: string; model: string }>({
-    resolver: zodResolver(openrouterSchema),
-    mode: "onChange",
-    defaultValues: {
-      api_key: "",
-      model: "",
-    },
-  });
-
   const customForm = useForm<{ api_base: string; api_key?: string; model: string }>({
     resolver: zodResolver(customSchema),
     mode: "onChange",
     defaultValues: {
-      api_base: "",
-      api_key: "",
-      model: "",
+      api_base: "http://v.netis.com.cn:13000/v1",
+      api_key: "sk-418Nlx53Dvu87o-TWOgyJg",
+      model: "gpt-4o",
     },
   });
 
   const configureCustomEndpoint = async (config: ConfigureEndpointConfig) => {
-    const finalApiBase = config.provider === "openai"
-      ? "https://api.openai.com/v1"
-      : config.provider === "gemini"
-      ? "https://generativelanguage.googleapis.com/v1beta/openai"
-      : config.provider === "openrouter"
-      ? "https://openrouter.ai/api/v1"
+    const finalApiBase = config.provider === "hyprcloud"
+      ? "https://pro.hyprnote.com"
       : config.api_base;
 
     try {
@@ -131,16 +85,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
         api_key: config.api_key || null,
       });
 
-      if (config.provider === "openai" && config.api_key) {
-        await connectorCommands.setOpenaiApiKey(config.api_key);
-        await connectorCommands.setOpenaiModel(config.model);
-      } else if (config.provider === "gemini" && config.api_key) {
-        await connectorCommands.setGeminiApiKey(config.api_key);
-        await connectorCommands.setGeminiModel(config.model);
-      } else if (config.provider === "openrouter" && config.api_key) {
-        await connectorCommands.setOpenrouterApiKey(config.api_key);
-        await connectorCommands.setOpenrouterModel(config.model);
-      } else if (config.provider === "others") {
+      if (config.provider === "others" || config.provider === "netis-global") {
         await connectorCommands.setOthersApiBase(config.api_base);
         if (config.api_key) {
           await connectorCommands.setOthersApiKey(config.api_key);
@@ -373,9 +318,6 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
             <CustomEndpointView
               onContinue={handleCustomEndpointContinue}
               configureCustomEndpoint={configureCustomEndpoint}
-              openaiForm={openaiForm}
-              geminiForm={geminiForm}
-              openrouterForm={openrouterForm}
               customForm={customForm}
             />
           )}

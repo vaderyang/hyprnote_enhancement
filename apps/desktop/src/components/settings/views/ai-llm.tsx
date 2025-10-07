@@ -31,10 +31,10 @@ import { cn } from "@hypr/ui/lib/utils";
 import { LLMCustomView } from "../components/ai/llm-custom-view";
 
 // Error boundary to wrap entire LLM settings view
-class LLMSettingsErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error?: any; info?: React.ErrorInfo; debug?: any }> {
+class LLMSettingsErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error?: any; info?: React.ErrorInfo; debug?: any; copied?: boolean }> {
   constructor(props: { children: React.ReactNode }) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, copied: false };
   }
   static getDerivedStateFromError(_error: unknown) {
     return { hasError: true };
@@ -57,12 +57,37 @@ class LLMSettingsErrorBoundary extends React.Component<{ children: React.ReactNo
     console.error("LLM Settings crashed", error, info, debug);
     this.setState({ hasError: true, error, info, debug });
   }
+  
+  copyErrorInfo = () => {
+    try {
+      const errMsg = (this.state.error && (this.state.error.message || String(this.state.error))) || "Unknown error";
+      const debugInfo = `=== LLM Settings Error ===\n\nError: ${errMsg}\n\nComponent Stack:\n${this.state.info?.componentStack || 'N/A'}\n\nDebug Info:\n${JSON.stringify(this.state.debug, null, 2)}`;
+      
+      navigator.clipboard.writeText(debugInfo).then(() => {
+        this.setState({ copied: true });
+        setTimeout(() => this.setState({ copied: false }), 2000);
+      });
+    } catch (err) {
+      console.error("Failed to copy error info:", err);
+    }
+  };
+  
   render() {
     if (this.state.hasError) {
       const errMsg = (this.state.error && (this.state.error.message || String(this.state.error))) || "Unknown error";
       return (
         <div className="space-y-2 p-4 border border-red-200 rounded-md bg-red-50">
-          <div className="text-sm font-medium text-red-800">LLM Settings failed to render.</div>
+          <div className="flex justify-between items-start">
+            <div className="text-sm font-medium text-red-800">LLM Settings failed to render.</div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={this.copyErrorInfo}
+              className="h-7 text-xs"
+            >
+              {this.state.copied ? "Copied!" : "Copy Error"}
+            </Button>
+          </div>
           <div className="text-xs text-red-700">Please try closing and reopening Settings. Enhancing may still work; this only affects the Settings UI.</div>
           <div className="text-xs text-neutral-700">
             <div className="font-semibold">Error:</div>
@@ -90,53 +115,14 @@ class LLMSettingsErrorBoundary extends React.Component<{ children: React.ReactNo
 import {
   ConfigureEndpointConfig,
   CustomFormValues,
-  GeminiFormValues,
   LLMModel,
-  OpenAIFormValues,
-  OpenRouterFormValues,
   SharedCustomEndpointProps,
   SharedLLMProps,
 } from "../components/ai/shared";
 
-const openaiSchema = z.object({
-  api_key: z.string().min(1, { message: "API key is required" }).refine(
-    (value) => value.startsWith("sk-"),
-    { message: "OpenAI API key should start with 'sk-'" },
-  ),
-  model: z.string().min(1, { message: "Model is required" }),
-});
-
-const geminiSchema = z.object({
-  api_key: z.string().min(1, { message: "API key is required" }).refine(
-    (value) => value.startsWith("AIza"),
-    { message: "Gemini API key should start with 'AIza'" },
-  ),
-  model: z.string().min(1, { message: "Model is required" }),
-});
-
-const openrouterSchema = z.object({
-  api_key: z.string().min(1, { message: "API key is required" }).refine(
-    (value) => value.startsWith("sk-"),
-    { message: "OpenRouter API key should start with 'sk-'" },
-  ),
-  model: z.string().min(1, { message: "Model is required" }),
-});
-
 const customSchema = z.object({
   model: z.string().min(1, { message: "Model is required" }),
-  api_base: z.string().url({ message: "Please enter a valid URL" }).min(1, { message: "URL is required" }).refine(
-    (value) => {
-      const v1Needed = ["openai", "openrouter"].some((host) => value.includes(host));
-      if (v1Needed && !value.endsWith("/v1")) {
-        return false;
-      }
-      return true;
-    },
-    { message: "Unless you are using a local endpoint, it should end with '/v1'" },
-  ).refine(
-    (value) => !value.includes("chat/completions"),
-    { message: "`/chat/completions` will be appended automatically" },
-  ),
+  api_base: z.string().url({ message: "Please enter a valid URL" }).min(1, { message: "URL is required" }),
   api_key: z.string().optional(),
 });
 
@@ -193,7 +179,7 @@ function LlmAIInner() {
     });
   }, []);
 
-  const [openAccordion, setOpenAccordion] = useState<"others" | "openai" | "gemini" | "openrouter" | "netis-global" | null>(null);
+  const [openAccordion, setOpenAccordion] = useState<"others" | "netis-global" | null>(null);
 
   const { userId } = useHypr();
 
@@ -309,30 +295,6 @@ function LlmAIInner() {
     },
   });
 
-  const openaiApiKeyQuery = useQuery({
-    queryKey: ["openai-api-key"],
-    queryFn: () => connectorCommands.getOpenaiApiKey(),
-  });
-
-  const setOpenaiApiKeyMutation = useMutation({
-    mutationFn: (apiKey: string) => connectorCommands.setOpenaiApiKey(apiKey),
-    onSuccess: () => {
-      openaiApiKeyQuery.refetch();
-    },
-  });
-
-  const geminiApiKeyQuery = useQuery({
-    queryKey: ["gemini-api-key"],
-    queryFn: () => connectorCommands.getGeminiApiKey(),
-  });
-
-  const setGeminiApiKeyMutation = useMutation({
-    mutationFn: (apiKey: string) => connectorCommands.setGeminiApiKey(apiKey),
-    onSuccess: () => {
-      geminiApiKeyQuery.refetch();
-    },
-  });
-
   const othersApiBaseQuery = useQuery({
     queryKey: ["others-api-base"],
     queryFn: () => connectorCommands.getOthersApiBase(),
@@ -375,60 +337,9 @@ function LlmAIInner() {
   });
 
   const setProviderSourceMutation = useMutation({
-    mutationFn: (source: string) => connectorCommands.setProviderSource(source),
+    mutationFn: (provider: string) => connectorCommands.setProviderSource(provider),
     onSuccess: () => {
       providerSourceQuery.refetch();
-    },
-    onError: (error) => {
-      console.error("Failed to set provider source:", error);
-    },
-  });
-
-  const openaiModelQuery = useQuery({
-    queryKey: ["openai-model"],
-    queryFn: () => connectorCommands.getOpenaiModel(),
-  });
-
-  const setOpenaiModelMutation = useMutation({
-    mutationFn: (model: string) => connectorCommands.setOpenaiModel(model),
-    onSuccess: () => {
-      openaiModelQuery.refetch();
-    },
-  });
-
-  const geminiModelQuery = useQuery({
-    queryKey: ["gemini-model"],
-    queryFn: () => connectorCommands.getGeminiModel(),
-  });
-
-  const setGeminiModelMutation = useMutation({
-    mutationFn: (model: string) => connectorCommands.setGeminiModel(model),
-    onSuccess: () => {
-      geminiModelQuery.refetch();
-    },
-  });
-
-  const openrouterApiKeyQuery = useQuery({
-    queryKey: ["openrouter-api-key"],
-    queryFn: () => connectorCommands.getOpenrouterApiKey(),
-  });
-
-  const setOpenrouterApiKeyMutation = useMutation({
-    mutationFn: (apiKey: string) => connectorCommands.setOpenrouterApiKey(apiKey),
-    onSuccess: () => {
-      openrouterApiKeyQuery.refetch();
-    },
-  });
-
-  const openrouterModelQuery = useQuery({
-    queryKey: ["openrouter-model"],
-    queryFn: () => connectorCommands.getOpenrouterModel(),
-  });
-
-  const setOpenrouterModelMutation = useMutation({
-    mutationFn: (model: string) => connectorCommands.setOpenrouterModel(model),
-    onSuccess: () => {
-      openrouterModelQuery.refetch();
     },
   });
 
@@ -449,8 +360,8 @@ function LlmAIInner() {
 
     if (providerSourceQuery.data) {
       // Only set accordion if it's a valid custom provider
-      if (["openai", "gemini", "openrouter", "others", "netis-global"].includes(providerSourceQuery.data)) {
-        setOpenAccordion(providerSourceQuery.data as "openai" | "gemini" | "openrouter" | "others" | "netis-global");
+      if (["others", "netis-global"].includes(providerSourceQuery.data)) {
+        setOpenAccordion(providerSourceQuery.data as "others" | "netis-global");
       }
     } else {
       // Only clear accordion if custom LLM is disabled
@@ -483,13 +394,7 @@ function LlmAIInner() {
   ]);
 
   const configureCustomEndpoint = (config: ConfigureEndpointConfig) => {
-    const finalApiBase = config.provider === "openai"
-      ? "https://api.openai.com/v1"
-      : config.provider === "gemini"
-      ? "https://generativelanguage.googleapis.com/v1beta/openai"
-      : config.provider === "openrouter"
-      ? "https://openrouter.ai/api/v1"
-      : config.provider === "hyprcloud"
+    const finalApiBase = config.provider === "hyprcloud"
       ? "https://pro.hyprnote.com"
       : config.api_base;
 
@@ -509,16 +414,7 @@ function LlmAIInner() {
     setHyprCloudEnabledMutation.mutate(false);
     setCustomLLMEnabledMutation.mutate(true);
 
-    if (config.provider === "openai" && config.api_key) {
-      setOpenaiApiKeyMutation.mutate(config.api_key);
-      setOpenaiModelMutation.mutate(config.model);
-    } else if (config.provider === "gemini" && config.api_key) {
-      setGeminiApiKeyMutation.mutate(config.api_key);
-      setGeminiModelMutation.mutate(config.model);
-    } else if (config.provider === "openrouter" && config.api_key) {
-      setOpenrouterApiKeyMutation.mutate(config.api_key);
-      setOpenrouterModelMutation.mutate(config.model);
-    } else if (config.provider === "others" || config.provider === "netis-global") {
+    if (config.provider === "others" || config.provider === "netis-global") {
       setOthersApiBaseMutation.mutate(config.api_base);
       setOthersApiKeyMutation.mutate(config.api_key || "");
       setOthersModelMutation.mutate(config.model);
@@ -534,33 +430,6 @@ function LlmAIInner() {
     });
   };
 
-  const openaiForm = useForm<OpenAIFormValues>({
-    resolver: zodResolver(openaiSchema),
-    mode: "onChange",
-    defaultValues: {
-      api_key: "",
-      model: "",
-    },
-  });
-
-  const geminiForm = useForm<GeminiFormValues>({
-    resolver: zodResolver(geminiSchema),
-    mode: "onChange",
-    defaultValues: {
-      api_key: "",
-      model: "",
-    },
-  });
-
-  const openrouterForm = useForm<OpenRouterFormValues>({
-    resolver: zodResolver(openrouterSchema),
-    mode: "onChange",
-    defaultValues: {
-      api_key: "",
-      model: "",
-    },
-  });
-
   const customForm = useForm<CustomFormValues>({
     resolver: zodResolver(customSchema),
     mode: "onChange",
@@ -570,33 +439,6 @@ function LlmAIInner() {
       model: "gpt-4o",
     },
   });
-
-  useEffect(() => {
-    if (openaiApiKeyQuery.data) {
-      openaiForm.setValue("api_key", openaiApiKeyQuery.data);
-    }
-    if (openaiModelQuery.data) {
-      openaiForm.setValue("model", openaiModelQuery.data);
-    }
-  }, [openaiApiKeyQuery.data, openaiModelQuery.data, openaiForm]);
-
-  useEffect(() => {
-    if (geminiApiKeyQuery.data) {
-      geminiForm.setValue("api_key", geminiApiKeyQuery.data);
-    }
-    if (geminiModelQuery.data) {
-      geminiForm.setValue("model", geminiModelQuery.data);
-    }
-  }, [geminiApiKeyQuery.data, geminiModelQuery.data, geminiForm]);
-
-  useEffect(() => {
-    if (openrouterApiKeyQuery.data) {
-      openrouterForm.setValue("api_key", openrouterApiKeyQuery.data);
-    }
-    if (openrouterModelQuery.data) {
-      openrouterForm.setValue("model", openrouterModelQuery.data);
-    }
-  }, [openrouterApiKeyQuery.data, openrouterModelQuery.data, openrouterForm]);
 
   useEffect(() => {
     if (othersApiBaseQuery.data && othersApiBaseQuery.data !== "https://pro.hyprnote.com") {
@@ -609,30 +451,6 @@ function LlmAIInner() {
       customForm.setValue("model", othersModelQuery.data);
     }
   }, [othersApiBaseQuery.data, othersApiKeyQuery.data, othersModelQuery.data, customForm]);
-
-  useEffect(() => {
-    if (openAccordion === "openai" && openaiModelQuery.data) {
-      if (openaiForm.getValues("model") !== openaiModelQuery.data) {
-        openaiForm.setValue("model", openaiModelQuery.data);
-      }
-    }
-  }, [openaiModelQuery.data, openAccordion, openaiForm]);
-
-  useEffect(() => {
-    if (openAccordion === "gemini" && geminiModelQuery.data) {
-      if (geminiForm.getValues("model") !== geminiModelQuery.data) {
-        geminiForm.setValue("model", geminiModelQuery.data);
-      }
-    }
-  }, [geminiModelQuery.data, openAccordion, geminiForm]);
-
-  useEffect(() => {
-    if (openAccordion === "openrouter" && openrouterModelQuery.data) {
-      if (openrouterForm.getValues("model") !== openrouterModelQuery.data) {
-        openrouterForm.setValue("model", openrouterModelQuery.data);
-      }
-    }
-  }, [openrouterModelQuery.data, openAccordion, openrouterForm]);
 
   useEffect(() => {
     if (openAccordion === "others") {
@@ -723,9 +541,6 @@ function LlmAIInner() {
     setOpenAccordion,
     customLLMConnection,
     getCustomLLMModel,
-    openaiForm,
-    geminiForm,
-    openrouterForm,
     customForm,
     isLocalEndpoint,
   };
