@@ -47,7 +47,7 @@ Release 0.5 successfully delivers three major improvements to the Pinote applica
 - Implemented auto-configuration with hidden credentials:
   - API Base URL: `https://llm.netis.io/v1` (hidden from UI)
   - API Key: From `VITE_NETIS_GLOBAL_API_KEY` environment variable (hidden from UI)
-  - Default model: `qwen3-coder-480b`
+  - Default model: `qwen-3-coder-480b`
 - Auto-fetches available models from API endpoint on accordion open
 - Shows only model selector to users - credentials are pre-configured
 - Added helpful information banner explaining pre-configuration
@@ -57,7 +57,7 @@ Release 0.5 successfully delivers three major improvements to the Pinote applica
 - ✅ Separate provider alongside existing Netis (not replacing it)
 - ✅ Hidden API base URL and key fields
 - ✅ Auto-fetch models on open with Bearer auth
-- ✅ Pre-select default model `qwen3-coder-480b`
+- ✅ Pre-select default model `qwen-3-coder-480b`
 - ✅ Auto-configure endpoint when model selected
 - ✅ Graceful handling of missing environment variable
 
@@ -181,7 +181,7 @@ These do not affect functionality and can be addressed in a future refactor if n
    - Navigate to Settings → AI → LLM
    - Click on "Netis Global" accordion
    - Verify models are auto-fetched
-   - Verify `qwen3-coder-480b` is default if available
+   - Verify `qwen-3-coder-480b` is default if available
    - Select a model and verify configuration saves
 
 4. **Test new logo:**

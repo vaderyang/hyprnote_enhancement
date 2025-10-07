@@ -39,7 +39,7 @@ export const ErrorComponent: ErrorRouteComponent = ({ error }) => {
     <div className="flex min-h-screen h-full w-full flex-col items-center justify-center gap-2 bg-neutral-200 p-6">
       <p className="text-xl font-semibold">Sorry, something went wrong.</p>
       <p>The error has been automatically reported to the team.</p>
-      <img src="https://netis.com/wp-content/uploads/2025/02/logo.png" alt="error" className="w-1/2" />
+      <img src="/assets/logo.svg" alt="error" className="w-64" />
 
       <div className="flex gap-2">
         <Link to="/app/new">

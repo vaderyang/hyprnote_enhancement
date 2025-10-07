@@ -24,7 +24,8 @@ import { SharedCustomEndpointProps } from "./shared";
 // const geminiModels = [...];
 // const openrouterModels = [...];
 
-export function LLMCustomView({
+// Error boundary wrapper for the component
+function LLMCustomViewInner({
   customLLMEnabled,
   selectedLLMModel,
   setSelectedLLMModel,
@@ -135,24 +136,29 @@ export function LLMCustomView({
   }, [customForm, configureCustomEndpoint, userOpenedAccordion, customLLMEnabled.data, setHyprCloudEnabledMutation]);
 
   const handleAccordionClick = (provider: "openai" | "gemini" | "openrouter" | "others" | "netis-global") => {
-    // Track that user explicitly opened this accordion
-    setUserOpenedAccordion(provider);
+    try {
+      // Track that user explicitly opened this accordion
+      setUserOpenedAccordion(provider);
 
-    // If HyprCloud is active, clicking an accordion should disable it
-    if (hyprCloudEnabled?.data) {
-      // setHyprCloudEnabledMutation.mutate(false);
-      setOpenAccordion(provider as any);
+      // If HyprCloud is active, clicking an accordion should disable it
+      if (hyprCloudEnabled?.data) {
+        // setHyprCloudEnabledMutation.mutate(false);
+        setOpenAccordion(provider as any);
+        if (selectedLLMModel === "hyprcloud") {
+          setSelectedLLMModel("");
+        }
+        return;
+      }
+
+      // Always allow accordion opening/switching, don't auto-enable custom
+      setOpenAccordion(provider === openAccordion ? null : provider as any);
+
       if (selectedLLMModel === "hyprcloud") {
         setSelectedLLMModel("");
       }
-      return;
-    }
-
-    // Always allow accordion opening/switching, don't auto-enable custom
-    setOpenAccordion(provider === openAccordion ? null : provider as any);
-
-    if (selectedLLMModel === "hyprcloud") {
-      setSelectedLLMModel("");
+    } catch (error) {
+      console.error("Error in handleAccordionClick:", error);
+      // Don't re-throw - just log it
     }
   };
 
@@ -199,16 +205,24 @@ export function LLMCustomView({
       console.warn(`Netis Global failed (${reason}):`, err);
       disableNetisGlobalForSession();
 
-      // User-friendly notification
-      toast({
-        id: "netis-global-fallback",
-        title: "Netis Global Unavailable",
-        content: "Switching to Netis provider instead.",
-        duration: 3000,
-      });
+      // User-friendly notification (wrapped in try-catch)
+      try {
+        toast({
+          id: "netis-global-fallback",
+          title: "Netis Global Unavailable",
+          content: "Switching to Netis provider instead.",
+          duration: 3000,
+        });
+      } catch (toastErr) {
+        console.warn("Failed to show toast:", toastErr);
+      }
 
-      // Switch UI to Netis ("others")
-      setOpenAccordion("others");
+      // Switch UI to Netis ("others") - wrapped in try-catch
+      try {
+        setOpenAccordion("others");
+      } catch (accordionErr) {
+        console.warn("Failed to set accordion:", accordionErr);
+      }
 
       // Configure "others" with default Netis settings
       try {
@@ -308,12 +322,20 @@ export function LLMCustomView({
           model: netisGlobalSelectedModel,
         });
       } catch (err) {
+        console.error("Error in Netis Global auto-config:", err);
         if (!cancelled) {
-          handleNetisGlobalFailure("auto-config", err);
+          // Don't call handleNetisGlobalFailure here - it causes UI conflicts
+          // Just log the error and continue
         }
       }
     };
-    run();
+    
+    // Wrap the run call to prevent any errors from bubbling up
+    try {
+      run();
+    } catch (err) {
+      console.error("Error starting Netis Global auto-config:", err);
+    }
 
     return () => {
       cancelled = true;
@@ -327,7 +349,6 @@ export function LLMCustomView({
     setHyprCloudEnabledMutation,
     netisGlobalApiBase,
     netisGlobalApiKey,
-    handleNetisGlobalFailure,
   ]);
 
   // temporary fix for fetching models smoothly
@@ -663,4 +684,20 @@ export function LLMCustomView({
       </div>
     </div>
   );
+}
+
+// Export wrapped version with error boundary
+export function LLMCustomView(props: SharedCustomEndpointProps) {
+  try {
+    return <LLMCustomViewInner {...props} />;
+  } catch (error) {
+    console.error("Error in LLMCustomView:", error);
+    return (
+      <div className="p-4 border border-red-200 rounded-lg bg-red-50">
+        <p className="text-sm text-red-700">
+          Unable to load AI provider settings. Please refresh the page.
+        </p>
+      </div>
+    );
+  }
 }

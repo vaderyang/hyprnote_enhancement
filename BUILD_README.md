@@ -18,6 +18,7 @@ If you need to build manually with custom settings:
 export NETIS_API_KEY="your-api-key-here"
 export POSTHOG_API_KEY="dummy"
 export AM_API_KEY="dummy"
+export VITE_NETIS_GLOBAL_API_KEY="your-api-key-here"
 
 pnpm -F desktop tauri:build
 ```
@@ -25,7 +26,7 @@ pnpm -F desktop tauri:build
 ## Build Output
 
 Successful builds produce:
-- **DMG Installer**: `apps/desktop/src-tauri/target/release/bundle/dmg/Pinote Dev_0.3.0_aarch64.dmg`
+- **DMG Installer**: `apps/desktop/src-tauri/target/release/bundle/dmg/Pinote Dev_{version number}_aarch64.dmg`
 - **macOS App**: `apps/desktop/src-tauri/target/release/bundle/macos/Pinote Dev.app`
 - **Updater Bundle**: `apps/desktop/src-tauri/target/release/bundle/macos/Pinote Dev.app.tar.gz`
 
@@ -34,6 +35,7 @@ Successful builds produce:
 | Variable | Purpose | Default |
 |----------|---------|---------|
 | `NETIS_API_KEY` | Netis LLM API authentication | Required at build time |
+| `VITE_NETIS_GLOBAL_API_KEY` | Netis Global LLM API authentication | Required at build time |
 | `POSTHOG_API_KEY` | Analytics (currently disabled) | `dummy` |
 | `AM_API_KEY` | Additional analytics | `dummy` |
 

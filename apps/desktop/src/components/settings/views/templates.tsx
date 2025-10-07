@@ -73,10 +73,10 @@ export default function TemplatesView() {
 
       // Get all templates but exclude Auto from Settings view
       const allTemplates = await TemplateService.getAllTemplatesForSelection();
-      
+
       // Separate Running Log and other templates (exclude Auto from Settings)
       const runningLog = allTemplates.find(t => t.id === RUNNING_LOG_ID);
-      const others = allTemplates.filter(t => 
+      const others = allTemplates.filter(t =>
         t.id !== AUTO_TEMPLATE_ID && t.id !== RUNNING_LOG_ID
       );
 

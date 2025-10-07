@@ -54,7 +54,7 @@ This release includes:
 - Separate accordion alongside existing "Netis" accordion
 - API Base URL: `https://llm.netis.io/v1` (hidden)
 - API Key: from `VITE_NETIS_GLOBAL_API_KEY` env var (hidden)
-- Default model: `qwen3-coder-480b`
+- Default model: `qwen-3-coder-480b`
 - Auto-fetch models on accordion open
 - Show only Model selector to user
 

@@ -178,6 +178,9 @@ export default function LlmAI() {
     onSuccess: () => {
       customLLMEnabled.refetch();
     },
+    onError: (error) => {
+      console.error("Failed to set custom LLM enabled:", error);
+    },
   });
 
   const hyprCloudEnabled = useQuery({
@@ -189,6 +192,9 @@ export default function LlmAI() {
     mutationFn: (enabled: boolean) => connectorCommands.setHyprcloudEnabled(enabled),
     onSuccess: () => {
       hyprCloudEnabled.refetch();
+    },
+    onError: (error) => {
+      console.error("Failed to set HyprCloud enabled:", error);
     },
   });
 
@@ -233,6 +239,9 @@ export default function LlmAI() {
 
   const setCustomLLMModel = useMutation({
     mutationFn: (model: string) => connectorCommands.setCustomLlmModel(model),
+    onError: (error) => {
+      console.error("Failed to set custom LLM model:", error);
+    },
   });
 
   const setCustomLLMConnection = useMutation({
@@ -312,6 +321,9 @@ export default function LlmAI() {
     mutationFn: (source: string) => connectorCommands.setProviderSource(source),
     onSuccess: () => {
       providerSourceQuery.refetch();
+    },
+    onError: (error) => {
+      console.error("Failed to set provider source:", error);
     },
   });
 
