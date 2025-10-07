@@ -201,6 +201,7 @@ export function LLMCustomView({
 
       // User-friendly notification
       toast({
+        id: "netis-global-fallback",
         title: "Netis Global Unavailable",
         content: "Switching to Netis provider instead.",
         duration: 3000,
@@ -234,7 +235,7 @@ export function LLMCustomView({
   }, [openAccordion, customLLMEnabled.data, customForm, netisGlobalApiBase]);
 
   // Fetch Netis Global models with comprehensive error handling
-  const netisGlobalModels = useQuery({
+  const netisGlobalModels = useQuery<string[], Error>({
     queryKey: ["netis-global-models"],
     queryFn: async (): Promise<string[]> => {
       try {
@@ -273,7 +274,8 @@ export function LLMCustomView({
 
         return models;
       } catch (error) {
-        // Let onError handle it without throwing to ErrorBoundary
+        // Trigger fallback handler before re-throwing
+        handleNetisGlobalFailure("models-query", error);
         throw error;
       }
     },
@@ -281,9 +283,6 @@ export function LLMCustomView({
     retry: false,
     refetchInterval: false,
     throwOnError: false,
-    onError: (err: unknown) => {
-      handleNetisGlobalFailure("models-query", err);
-    },
   });
 
   // Auto-configure Netis Global when model is selected with error handling
@@ -630,7 +629,7 @@ export function LLMCustomView({
                             <SelectValue placeholder="Select model" />
                           </SelectTrigger>
                           <SelectContent>
-                            {netisGlobalModels.data.map((model) => (
+                            {netisGlobalModels.data.map((model: string) => (
                               <SelectItem key={model} value={model}>
                                 {model}
                               </SelectItem>
