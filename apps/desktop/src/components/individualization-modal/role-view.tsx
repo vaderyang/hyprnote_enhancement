@@ -21,7 +21,7 @@ export const RoleView: React.FC<RoleViewProps> = ({ onSelect, onSkip, selectedRo
     <div className="flex flex-col items-center w-full">
       {/* Main Title */}
       <h2 className="mb-4 text-center text-xl font-semibold text-neutral-800">
-        <Trans>Help us tailor your Hyprnote experience</Trans>
+        <Trans>Help us tailor your Pinote experience</Trans>
       </h2>
 
       {/* Specific Question */}

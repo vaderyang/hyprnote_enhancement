@@ -163,7 +163,7 @@ mod tests {
     fn test_chat_format() {
         let test_path = dirs::data_dir()
             .unwrap()
-            .join("com.hyprnote.stable")
+            .join("com.pinote.stable")
             .join("ttt/hypr-llm.gguf");
 
         assert!(test_path.exists());

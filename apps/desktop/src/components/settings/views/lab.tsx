@@ -40,8 +40,8 @@ function CloudPreview() {
 
   return (
     <FeatureFlag
-      title="Hyprnote Cloud"
-      description="Access to the latest AI model for Hyprnote Pro"
+      title="Pinote Cloud"
+      description="Access to the latest AI model for Pinote Pro"
       icon={<CloudLightningIcon />}
       enabled={flagQuery.data ?? false}
       onToggle={handleToggle}

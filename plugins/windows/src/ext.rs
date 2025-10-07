@@ -129,7 +129,7 @@ impl HyprWindow {
 
     pub fn title(&self) -> String {
         match self {
-            Self::Main => "Hyprnote".into(),
+            Self::Main => "Pinote".into(),
             Self::Note(_) => "Note".into(),
             Self::Human(_) => "Human".into(),
             Self::Organization(_) => "Organization".into(),

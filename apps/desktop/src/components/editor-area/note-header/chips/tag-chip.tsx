@@ -583,7 +583,7 @@ function TagAddControl({ sessionId, allTags }: { sessionId: string; allTags: { i
                           </button>
                         </TooltipTrigger>
                         <TooltipContent side="top" className="text-xs">
-                          <p>Suggested by Hyprnote</p>
+                          <p>Suggested by Pinote</p>
                         </TooltipContent>
                       </Tooltip>
                     ))}

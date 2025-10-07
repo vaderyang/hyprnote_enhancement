@@ -30,7 +30,7 @@ export const StoryView: React.FC<StoryViewProps> = ({ onComplete, onSkip }) => {
           once
           className="text-lg font-medium text-neutral-700"
         >
-          Hope you're enjoying Hyprnote.
+          Hope you're enjoying Pinote.
         </TextAnimate>
 
         {/* Second line - regular */}
@@ -60,7 +60,7 @@ export const StoryView: React.FC<StoryViewProps> = ({ onComplete, onSkip }) => {
           once
           className="text-lg font-medium text-neutral-700"
         >
-          Mind telling us what you're using Hyprnote for?
+          Mind telling us what you're using Pinote for?
         </TextAnimate>
       </div>
 

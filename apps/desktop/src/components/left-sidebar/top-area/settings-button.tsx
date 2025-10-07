@@ -79,7 +79,7 @@ export function SettingsButton() {
   // const handleClickTalkToFounders = async () => {
   //   setOpen(false);
   //   try {
-  //     await openURL("https://cal.com/team/hyprnote/welcome");
+  //     await openURL("https://cal.com/team/pinote/welcome");
   //   } catch (error) {
   //     console.error("Failed to open talk to founders:", error);
   //   }

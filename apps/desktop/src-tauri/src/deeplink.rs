@@ -133,7 +133,7 @@ mod tests {
 
     #[test]
     fn test_parse_register_query() {
-        let url = "hypr://hyprnote.com/register?base_url=http://localhost:3000&api_key=123";
+        let url = "hypr://pinote.org/register?base_url=http://localhost:3000&api_key=123";
 
         let actions = parse(url);
         assert_eq!(actions.len(), 2);
@@ -160,7 +160,7 @@ mod tests {
 
     #[test]
     fn test_parse_license_query() {
-        let url = "hypr://hyprnote.com/license?key=123";
+        let url = "hypr://pinote.org/license?key=123";
 
         let actions = parse(url);
         assert_eq!(actions.len(), 2);

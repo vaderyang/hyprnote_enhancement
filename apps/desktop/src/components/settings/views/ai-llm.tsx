@@ -379,7 +379,7 @@ function LlmAIInner() {
       setOpenAccordion("others");
 
       // Clear HyprCloud URL if it's stored in "others" API base
-      if (othersApiBaseQuery.data === "https://pro.hyprnote.com") {
+      if (othersApiBaseQuery.data === "https://pro.pinote.org") {
         setOthersApiBaseMutation.mutate("");
       }
     }
@@ -395,7 +395,7 @@ function LlmAIInner() {
 
   const configureCustomEndpoint = (config: ConfigureEndpointConfig) => {
     const finalApiBase = config.provider === "hyprcloud"
-      ? "https://pro.hyprnote.com"
+      ? "https://pro.pinote.org"
       : config.api_base;
 
     if (config.provider === "hyprcloud") {
@@ -444,7 +444,7 @@ function LlmAIInner() {
     // Only sync form values when NOT on netis-global accordion (it has its own state)
     if (openAccordion === "netis-global") return;
     
-    if (othersApiBaseQuery.data && othersApiBaseQuery.data !== "https://pro.hyprnote.com") {
+    if (othersApiBaseQuery.data && othersApiBaseQuery.data !== "https://pro.pinote.org") {
       customForm.setValue("api_base", othersApiBaseQuery.data);
     }
     if (othersApiKeyQuery.data) {
@@ -457,7 +457,7 @@ function LlmAIInner() {
 
   useEffect(() => {
     if (openAccordion === "others") {
-      if (othersApiBaseQuery.data && othersApiBaseQuery.data !== "https://pro.hyprnote.com") {
+      if (othersApiBaseQuery.data && othersApiBaseQuery.data !== "https://pro.pinote.org") {
         if (customForm.getValues("api_base") !== othersApiBaseQuery.data) {
           customForm.setValue("api_base", othersApiBaseQuery.data);
         }
@@ -617,7 +617,7 @@ function LlmAIInner() {
                               <Button
                                 size="icon"
                                 variant="ghost"
-                                onClick={() => open("https://docs.hyprnote.com/features/ai-autonomy")}
+                                onClick={() => open("https://docs.pinote.org/features/ai-autonomy")}
                                 className="h-8 w-8"
                               >
                                 <InfoIcon className="w-4 h-4" />

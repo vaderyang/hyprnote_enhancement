@@ -9,15 +9,15 @@ export default function HelpSupport() {
   const { userId } = useHypr();
 
   const handleOpenFeedback = () => {
-    openUrl("https://hyprnote.canny.io/feature-requests");
+    openUrl("https://pinote.canny.io/feature-requests");
   };
 
   const handleOpenDocs = () => {
-    openUrl("https://docs.hyprnote.com");
+    openUrl("https://docs.pinote.org");
   };
 
   const handleReportBug = () => {
-    openUrl("https://hyprnote.canny.io/bug-report");
+    openUrl("https://pinote.canny.io/bug-report");
   };
 
   const handleOpenLogs = () => {
@@ -115,10 +115,10 @@ export default function HelpSupport() {
             User ID: <span className="font-mono bg-gray-100 px-1 rounded select-text cursor-text">{userId}</span>
           </div>
 
-          {/* Hyprnote Credit */}
+          {/* Pinote Credit */}
           <div className="mt-6 pt-4 border-t border-gray-200">
             <p className="text-sm text-gray-500">
-              Powered by <a href="https://hyprnote.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Hyprnote</a>
+              Powered by <a href="https://pinote.org" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Pinote</a>
             </p>
           </div>
         </div>

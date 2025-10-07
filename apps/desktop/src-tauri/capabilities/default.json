@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Capability for Hyprnote",
+  "description": "Capability for Pinote",
   "windows": ["*"],
   "platforms": ["macOS", "windows", "linux"],
   "withGlobalTauri": true,

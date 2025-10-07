@@ -63,7 +63,7 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
       || modelId === "anthropic/claude-sonnet-4"
       || modelId === "openai/gpt-4o"
       || modelId === "gpt-4o"
-      || apiBase?.includes("pro.hyprnote.com")
+      || apiBase?.includes("pro.pinote.org")
       || modelId === "openai/gpt-5";
 
     if (!shouldUseTools) {
@@ -73,7 +73,7 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
     const mcpServers = await mcpCommands.getServers();
     const enabledServers = mcpServers.filter((server) => server.enabled);
 
-    // load Hyprnote cloud MCP if applicable
+    // load Pinote cloud MCP if applicable
     // Disabled: license checking removed
 
     for (const server of enabledServers) {
@@ -124,7 +124,7 @@ export class CustomChatTransport implements ChatTransport<UIMessage> {
       || modelId === "anthropic/claude-sonnet-4"
       || modelId === "openai/gpt-4o"
       || modelId === "gpt-4o"
-      || apiBase?.includes("pro.hyprnote.com")
+      || apiBase?.includes("pro.pinote.org")
       || modelId === "openai/gpt-5";
 
     const searchTool = createSearchSessionTool(this.options.userId);

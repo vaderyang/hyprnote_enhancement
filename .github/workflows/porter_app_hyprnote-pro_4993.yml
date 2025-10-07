@@ -18,7 +18,7 @@ jobs:
         timeout-minutes: 30
         run: exec porter apply
         env:
-          PORTER_APP_NAME: hyprnote-pro
+          PORTER_APP_NAME: pinote-pro
           PORTER_CLUSTER: "4993"
           PORTER_DEPLOYMENT_TARGET_ID: d0e8644e-e4b3-4ce4-921a-6064559d8ae0
           PORTER_HOST: https://dashboard.porter.run

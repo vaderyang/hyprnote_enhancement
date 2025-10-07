@@ -131,7 +131,7 @@ impl NotificationHandler {
                         .title("Meeting detected")
                         .key(key)
                         .message("Based on your microphone activity")
-                        .url("hypr://hyprnote.com/app/new?record=true")
+                        .url("hypr://pinote.org/app/new?record=true")
                         .timeout(std::time::Duration::from_secs(5))
                         .build(),
                 );
@@ -165,7 +165,7 @@ impl NotificationHandler {
                         .title("Meeting app started")
                         .key(key)
                         .message(&format!("Detected: {}", bundle_id))
-                        .url("hypr://hyprnote.com/app/new?record=true")
+                        .url("hypr://pinote.org/app/new?record=true")
                         .timeout(std::time::Duration::from_secs(5))
                         .build(),
                 );
@@ -204,7 +204,7 @@ impl NotificationHandler {
                         .title(trigger.event_name.clone())
                         .message("Meeting starting soon!")
                         .url(format!(
-                            "hypr://hyprnote.com/app/new?calendarEventId={}&record=true",
+                            "hypr://pinote.org/app/new?calendarEventId={}&record=true",
                             trigger.event_id
                         ))
                         .timeout(std::time::Duration::from_secs(

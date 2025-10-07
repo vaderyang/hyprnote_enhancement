@@ -1,5 +1,5 @@
 [project]
-name = "hyprnote"
+name = "pinote"
 version = "0.1.0"
 description = ""
 package-mode = false
@@ -11,7 +11,7 @@ requires-python = ">=3.12"
 dependencies = ["gguf (>=0.17.1,<0.18.0)", "jiwer (>=4.0.0,<5.0.0)"]
 
 [tool.poetry]
-name = "hyprnote"
+name = "pinote"
 version = "0.1.0"
 description = ""
 authors = ["Yujong Lee <yujonglee.dev@gmail.com>"]

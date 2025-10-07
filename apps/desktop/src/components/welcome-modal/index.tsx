@@ -70,7 +70,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
 
   const configureCustomEndpoint = async (config: ConfigureEndpointConfig) => {
     const finalApiBase = config.provider === "hyprcloud"
-      ? "https://pro.hyprnote.com"
+      ? "https://pro.pinote.org"
       : config.api_base;
 
     try {

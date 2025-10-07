@@ -1,13 +1,13 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Hyprnote Nightly",
-  "mainBinaryName": "Hyprnote Nightly",
-  "identifier": "com.hyprnote.nightly",
+  "productName": "Pinote Nightly",
+  "mainBinaryName": "Pinote Nightly",
+  "identifier": "com.pinote.nightly",
   "plugins": {
     "updater": {
       "active": true,
       "endpoints": [
-        "https://desktop.hyprnote.com/update/{{target}}-{{arch}}/{{current_version}}?channel=nightly"
+        "https://desktop.pinote.org/update/{{target}}-{{arch}}/{{current_version}}?channel=nightly"
       ]
     }
   },

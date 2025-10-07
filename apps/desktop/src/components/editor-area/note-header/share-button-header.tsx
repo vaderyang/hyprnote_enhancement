@@ -104,7 +104,7 @@ const exportHandlers = {
       }
     }
 
-    bodyContent += "\n\nSent with Hyprnote (www.hyprnote.com)\n\n";
+    bodyContent += "\n\nSent with Pinote (www.pinote.org)\n\n";
 
     const participantEmails = sessionParticipants
       ?.filter(participant => participant.email && participant.email.trim())
@@ -383,14 +383,14 @@ export function useShareLogic() {
       title: "PDF",
       icon: <FileText size={16} />,
       description: "Save as PDF document",
-      docsUrl: "https://docs.hyprnote.com/sharing#pdf",
+      docsUrl: "https://docs.pinote.org/sharing#pdf",
     },
     {
       id: "email",
       title: "Email",
       icon: <Mail size={16} />,
       description: "Share via email",
-      docsUrl: "https://docs.hyprnote.com/sharing#email",
+      docsUrl: "https://docs.pinote.org/sharing#email",
     },
     isObsidianConfigured.data
       ? {
@@ -398,7 +398,7 @@ export function useShareLogic() {
         title: "Obsidian",
         icon: <BookText size={16} />,
         description: "Export to Obsidian",
-        docsUrl: "https://docs.hyprnote.com/sharing#obsidian",
+        docsUrl: "https://docs.pinote.org/sharing#obsidian",
       }
       : null,
   ].filter(Boolean) as ExportCard[];
@@ -710,7 +710,7 @@ export function SharePopoverContent() {
       </div>
       <div className="text-xs text-neutral-400 text-center">
         <button
-          onClick={() => openUrl("https://hyprnote.canny.io")}
+          onClick={() => openUrl("https://pinote.canny.io")}
           className="hover:text-neutral-600 transition-colors underline"
         >
           Request more sharing options

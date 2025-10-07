@@ -426,10 +426,10 @@ export const exportToPDF = async (
   pdf.text("Summarized by ", margin, yPosition);
 
   const madeByWidth = pdf.getTextWidth("Summarized by ");
-  pdf.setTextColor(...PDF_STYLES.colors.hyprnoteLink);
+  pdf.setTextColor(...PDF_STYLES.colors.pinoteLink);
 
-  const hyprnoteText = "Hyprnote";
-  pdf.textWithLink(hyprnoteText, margin + madeByWidth, yPosition, { url: "https://www.hyprnote.com" });
+  const pinoteText = "Pinote";
+  pdf.textWithLink(pinoteText, margin + madeByWidth, yPosition, { url: "https://www.pinote.org" });
 
   yPosition += lineHeight * 2;
 

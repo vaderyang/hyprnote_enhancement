@@ -3,7 +3,7 @@ use tokio::time::{sleep, Duration};
 
 use crate::BackgroundTask;
 
-// `defaults read /Applications/Hyprnote.app/Contents/Info.plist CFBundleIdentifier`
+// `defaults read /Applications/Pinote.app/Contents/Info.plist CFBundleIdentifier`
 const MEETING_APP_LIST: [&str; 8] = [
     "us.zoom.xos",                    // Zoom
     "Cisco-Systems.Spark",            // Webex (old bundle ID)

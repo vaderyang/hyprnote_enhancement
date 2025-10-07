@@ -156,7 +156,7 @@ impl<T: tauri::Manager<tauri::Wry>> TrayPluginExt<tauri::Wry> for T {
 
                         app.dialog()
                             .message(&message)
-                            .title("About Hyprnote")
+                            .title("About Pinote")
                             .buttons(MessageDialogButtons::OkCancelCustom(
                                 "Copy".to_string(),
                                 "Cancel".to_string(),
@@ -221,7 +221,7 @@ fn app_info_menu<R: tauri::Runtime>(app: &AppHandle<R>) -> Result<MenuItem<R>> {
     MenuItem::with_id(
         app,
         HyprMenuItem::AppInfo,
-        "About Hyprnote",
+        "About Pinote",
         true,
         None::<&str>,
     )
@@ -241,7 +241,7 @@ fn tray_open_menu<R: tauri::Runtime>(app: &AppHandle<R>) -> Result<MenuItem<R>> 
     MenuItem::with_id(
         app,
         HyprMenuItem::TrayOpen,
-        "Open Hyprnote",
+        "Open Pinote",
         true,
         None::<&str>,
     )

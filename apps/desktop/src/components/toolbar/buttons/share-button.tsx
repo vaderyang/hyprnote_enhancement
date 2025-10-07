@@ -90,14 +90,14 @@ function ShareButtonInNote() {
       title: "PDF",
       icon: <FileText size={20} />,
       description: "Save as PDF document",
-      docsUrl: "https://docs.hyprnote.com/sharing#pdf",
+      docsUrl: "https://docs.pinote.org/sharing#pdf",
     },
     {
       id: "email",
       title: "Email",
       icon: <Mail size={20} />,
       description: "Share via email",
-      docsUrl: "https://docs.hyprnote.com/sharing#email",
+      docsUrl: "https://docs.pinote.org/sharing#email",
     },
     isObsidianConfigured.data
       ? {
@@ -105,7 +105,7 @@ function ShareButtonInNote() {
         title: "Obsidian",
         icon: <BookText size={20} />,
         description: "Export to Obsidian",
-        docsUrl: "https://docs.hyprnote.com/sharing#obsidian",
+        docsUrl: "https://docs.pinote.org/sharing#obsidian",
       }
       : null,
   ].filter(Boolean) as ExportCard[];
@@ -263,7 +263,7 @@ function ShareButtonInNote() {
             <h3 className="text-sm font-medium text-gray-900">Share Enhanced Note</h3>
             <p className="text-xs text-gray-500">
               <button
-                onClick={() => openUrl("https://hyprnote.canny.io")}
+                onClick={() => openUrl("https://pinote.canny.io")}
                 className="text-gray-400 hover:text-gray-600 transition-colors underline"
               >
                 Let us know if you want other ways to share!
@@ -497,7 +497,7 @@ const exportHandlers = {
       }
     }
 
-    bodyContent += "\n\nSent with Hyprnote (www.hyprnote.com)\n\n";
+    bodyContent += "\n\nSent with Pinote (www.pinote.org)\n\n";
 
     const participantEmails = sessionParticipants
       ?.filter(participant => participant.email && participant.email.trim())

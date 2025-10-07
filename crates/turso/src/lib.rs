@@ -35,7 +35,7 @@ impl CreateDatabaseRequestBuilder {
         // `_` is invalid
         CreateDatabaseRequest {
             name: self.name.unwrap(),
-            group: "hyprnote".to_string(),
+            group: "pinote".to_string(),
             is_schema: self.is_schema,
             schema: self.schema,
         }

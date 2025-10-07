@@ -50,7 +50,7 @@ impl NotionClient {
         let request = CreateADatabaseRequestBuilder::default()
             .title(vec![RichText::Text {
                 text: Text {
-                    content: "Hyprnote Meetings".to_string(),
+                    content: "Pinote Meetings".to_string(),
                     link: None,
                 },
                 plain_text: None,

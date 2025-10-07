@@ -96,7 +96,7 @@ mod test {
                     Where:
                     https://us05web.zoom.us/j/87636383039?pwd=NOWbxkY9GNblR0yaLKaIzcy76IWRoj.1
                     Description
-                    ****Hey, I'm Alice, co-founder of Hyprnote.****
+                    ****Hey, I'm Alice, co-founder of Pinote.****
                     Thanks for taking the time to visit this page—excited that you're booking a call with me.
                     Looking forward to chatting soon!
                     Best,
@@ -120,12 +120,12 @@ mod test {
             TestCase {
                 name: "zoom meeting with html formatting",
                 input: indoc::indoc! {r#"
-                    <p>──────────<br/>John Jeong is inviting you to a scheduled Zoom meeting.<br/>Join Zoom Meeting<br/>https://hyprnote.zoom.us/j/86746313244?pwd=zFIICnVHzPim44QcYGbLCAAqtBrGzx.1<br/><br/>
-                    View meeting insights with Zoom AI Companion<br/>https://hyprnote.zoom.us/launch/edl?muid=8fff7a40-04e0-4a8e-ae46-026a86793906<br/><br/>
+                    <p>──────────<br/>John Jeong is inviting you to a scheduled Zoom meeting.<br/>Join Zoom Meeting<br/>https://pinote.zoom.us/j/86746313244?pwd=zFIICnVHzPim44QcYGbLCAAqtBrGzx.1<br/><br/>
+                    View meeting insights with Zoom AI Companion<br/>https://pinote.zoom.us/launch/edl?muid=8fff7a40-04e0-4a8e-ae46-026a86793906<br/><br/>
                     Meeting ID: 867 4631 3244<br/>Passcode: 291681</p>
                 "#},
                 expected:
-                    "https://hyprnote.zoom.us/j/86746313244?pwd=zFIICnVHzPim44QcYGbLCAAqtBrGzx.1",
+                    "https://pinote.zoom.us/j/86746313244?pwd=zFIICnVHzPim44QcYGbLCAAqtBrGzx.1",
             },
             TestCase {
                 name: "korean google meet link",
@@ -146,7 +146,7 @@ mod test {
                 name: "zoom meeting with dial-in details",
                 input: indoc::indoc! {r#"
                     Join Zoom Meeting
-                    https://hyprnote.zoom.us/j/86746313244?pwd=zFIICnVHzPim44QcYGbLCAAqtBrGzx.1
+                    https://pinote.zoom.us/j/86746313244?pwd=zFIICnVHzPim44QcYGbLCAAqtBrGzx.1
 
                     Meeting ID: 867 4631 3244
                     Passcode: 291681
@@ -181,7 +181,7 @@ mod test {
                     Meeting ID: 867 4631 3244
                     Passcode: 291681
 
-                    Find your local number: https://hyprnote.zoom.us/u/kdoIeyBH9b
+                    Find your local number: https://pinote.zoom.us/u/kdoIeyBH9b
 
                     ---
 
@@ -189,7 +189,7 @@ mod test {
                     • 86746313244@zoomcrc.com
                 "#},
                 expected:
-                    "https://hyprnote.zoom.us/j/86746313244?pwd=zFIICnVHzPim44QcYGbLCAAqtBrGzx.1",
+                    "https://pinote.zoom.us/j/86746313244?pwd=zFIICnVHzPim44QcYGbLCAAqtBrGzx.1",
             },
         ];
 

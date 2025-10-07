@@ -1,7 +1,7 @@
 {
-  "name": "hyprnote-changelog-generator",
+  "name": "pinote-changelog-generator",
   "version": "1.0.0",
-  "description": "Local AI changelog generator for hyprnote",
+  "description": "Local AI changelog generator for pinote",
   "main": "generate-changelog-local.js",
   "dependencies": {
     "axios": "^1.6.0",
@@ -19,6 +19,6 @@
     "github",
     "automation"
   ],
-  "author": "hyprnote",
+  "author": "pinote",
   "license": "MIT"
 }

@@ -643,8 +643,8 @@ msgid "Got an error? Send your logs file to us at ai_embassy@netis.com"
 msgstr "Got an error? Send your logs file to us at ai_embassy@netis.com"
 
 #: src/components/settings/views/help-support.tsx:106
-#~ msgid "Got an error? Send your logs file to us at founders@hyprnote.com"
-#~ msgstr "Got an error? Send your logs file to us at founders@hyprnote.com"
+#~ msgid "Got an error? Send your logs file to us at founders@pinote.org"
+#~ msgstr "Got an error? Send your logs file to us at founders@pinote.org"
 
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:83
 #: src/components/settings/components/calendar/apple-calendar-integration-details.tsx:125
@@ -669,12 +669,12 @@ msgstr "Help us improve by reporting issues"
 #: src/components/individualization-modal/industry-view.tsx:63
 #: src/components/individualization-modal/org-size-view.tsx:24
 #: src/components/individualization-modal/role-view.tsx:24
-msgid "Help us tailor your Hyprnote experience"
-msgstr "Help us tailor your Hyprnote experience"
+msgid "Help us tailor your Pinote experience"
+msgstr "Help us tailor your Pinote experience"
 
 #: src/components/individualization-modal/how-heard-view.tsx:38
-msgid "How did you hear about Hyprnote?"
-msgstr "How did you hear about Hyprnote?"
+msgid "How did you hear about Pinote?"
+msgstr "How did you hear about Pinote?"
 
 #: src/components/right-panel/components/chat/empty-chat-state.tsx:82
 msgid "Important Q&As"
@@ -716,8 +716,8 @@ msgid "Language for AI-generated summaries"
 msgstr "Language for AI-generated summaries"
 
 #: src/components/settings/views/help-support.tsx:49
-#~ msgid "Learn how to use Hyprnote"
-#~ msgstr "Learn how to use Hyprnote"
+#~ msgid "Learn how to use Pinote"
+#~ msgstr "Learn how to use Pinote"
 
 #: src/components/settings/views/ai-llm.tsx:728
 msgid "Learn more about AI autonomy"

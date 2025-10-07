@@ -1,4 +1,4 @@
 # OWhisper
 
-https://docs.hyprnote.com/owhisper/what-is-this
+https://docs.pinote.org/owhisper/what-is-this
 

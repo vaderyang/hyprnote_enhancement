@@ -3,15 +3,15 @@
 <p align="center">
   <p align="center">AI notepad for <strong>private</strong> meetings. Not a single byte of data leaves your laptop/server — have full control.</p>
   <p align="center">
-   <a href="https://deepwiki.com/fastrepl/hyprnote"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
-   <a href="https://hyprnote.com/discord" target="_blank"><img src="https://img.shields.io/static/v1?label=Join%20our&message=Discord&color=blue&logo=Discord" alt="Discord"></a>
-   <a href="https://x.com/tryhyprnote" target="_blank"><img src="https://img.shields.io/static/v1?label=Follow%20us%20on&message=X&color=black&logo=x" alt="X"></a>
+   <a href="https://deepwiki.com/fastrepl/pinote"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
+   <a href="https://pinote.org/discord" target="_blank"><img src="https://img.shields.io/static/v1?label=Join%20our&message=Discord&color=blue&logo=Discord" alt="Discord"></a>
+   <a href="https://x.com/trypinote" target="_blank"><img src="https://img.shields.io/static/v1?label=Follow%20us%20on&message=X&color=black&logo=x" alt="X"></a>
   </p>
 </p>
    
-## What is Hyprnote?
+## What is Pinote?
 
-Hyprnote is a local-first AI notepad designed for people in back-to-back meetings.
+Pinote is a local-first AI notepad designed for people in back-to-back meetings.
 
 - Listens to your meetings while you write
 - Crafts smart summaries based on your quick notes
@@ -22,12 +22,12 @@ No clouds. No leaks. Just your notes—on your machine.
 ## Installation
 
 ```bash
-brew tap fastrepl/hyprnote && brew install hyprnote --cask
+brew tap fastrepl/pinote && brew install pinote --cask
 ```
 
-- [macOS](https://hyprnote.com/download) (public beta)
-- [Windows](https://github.com/fastrepl/hyprnote/issues/66) (soon)
-- [Linux](https://github.com/fastrepl/hyprnote/issues/67) (of course)
+- [macOS](https://pinote.org/download) (public beta)
+- [Windows](https://github.com/fastrepl/pinote/issues/66) (soon)
+- [Linux](https://github.com/fastrepl/pinote/issues/67) (of course)
 
 ## Highlights
 
@@ -36,11 +36,11 @@ Watch a live transcript update as the meeting unfolds—accurate, fast, and full
 <img width="959" height="712" alt="image" src="https://github.com/user-attachments/assets/d24b8b43-a052-44cd-803e-daa3ff600a9c" />
 
 ### From Memos to Summaries
-Jot things down during your call. Hyprnote turns them into a polished meeting summary—context-aware and easy to share.
+Jot things down during your call. Pinote turns them into a polished meeting summary—context-aware and easy to share.
 <img width="959" height="712" alt="image" src="https://github.com/user-attachments/assets/489f9239-1a32-4217-9d74-554906687fe1" />
 
 ### Truly Local
-No internet? No problem. Hyprnote works offline by default and keeps everything on your device.
+No internet? No problem. Pinote works offline by default and keeps everything on your device.
 
 ![offline](https://github.com/user-attachments/assets/c6649a63-3d41-40ea-a1fd-8c0713ad91bc)
 
@@ -51,7 +51,7 @@ Prefer something custom? You can swap in your own language model:
 - Use approved third-party APIs like Gemini, Claude, or Azure-hosted GPT
 - Stay compliant with whatever your org allows
 
-Hyprnote plays nice with whatever stack you’re running.
+Pinote plays nice with whatever stack you’re running.
 
 <img width="912" height="712" alt="image" src="https://github.com/user-attachments/assets/717dc39a-3359-46d6-a92f-51de56907750" />
 
@@ -64,7 +64,7 @@ Prefer a certain style? Choose from predefined templates like bullet points, age
 Control how much freedom the AI takes:
 
 - Stick strictly to your quick notes
-- Let Hyprnote improvise and reframe based on the full conversation
+- Let Pinote improvise and reframe based on the full conversation
 
 <img width="912" height="712" alt="image" src="https://github.com/user-attachments/assets/7de5c74f-5d99-46ec-8a5f-a38fb62bafb1" />
 

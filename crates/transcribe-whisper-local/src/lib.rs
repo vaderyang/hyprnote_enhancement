@@ -16,7 +16,7 @@ mod tests {
     async fn test_service() -> Result<(), Box<dyn std::error::Error>> {
         let model_path = dirs::data_dir()
             .unwrap()
-            .join("com.hyprnote.dev")
+            .join("com.pinote.dev")
             .join("stt/ggml-small-q8_0.bin");
 
         let service = HandleError::new(

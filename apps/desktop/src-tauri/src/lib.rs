@@ -150,7 +150,7 @@ pub async fn main() {
 
                 let app_clone = app.clone();
 
-                // hypr://hyprnote.com + <path>
+                // hypr://pinote.org + <path>
                 app.deep_link().on_open_url(move |event| {
                     let url = if let Some(url) = event.urls().first() {
                         url.to_string()

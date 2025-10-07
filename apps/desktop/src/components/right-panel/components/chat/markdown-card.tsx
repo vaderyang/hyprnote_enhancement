@@ -115,7 +115,7 @@ export function MarkdownCard(
         <div className="bg-neutral-50 px-4 py-1 border-b border-neutral-200 flex items-center justify-between">
           <div className="text-sm text-neutral-600 flex items-center gap-2">
             <FileTextIcon className="h-4 w-4" />
-            {sessionTitle || "Hyprnote Suggestion"}
+            {sessionTitle || "Pinote Suggestion"}
           </div>
 
           <Button

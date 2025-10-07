@@ -6,7 +6,7 @@ import { fetch } from "@hypr/utils";
 
 const SERVER_BASE_URL = import.meta.env.DEV
   ? "http://localhost:8082"
-  : "https://server2.hyprnote.com";
+  : "https://server2.pinote.org";
 
 export function useBilling({
   stripe_customer_id,
@@ -21,7 +21,7 @@ export function useBilling({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          productType: "hyprnote_pro",
+          productType: "pinote_pro",
           email,
           interval,
         }),

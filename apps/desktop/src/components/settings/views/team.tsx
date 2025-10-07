@@ -25,14 +25,14 @@ const members: Member[] = [
   {
     id: "1",
     name: "John / Nemo Toys",
-    email: "john@hyprnote.com",
+    email: "john@pinote.org",
     avatar: "J",
     role: "workspace_owner",
   },
   {
     id: "2",
     name: "Yujong Lee",
-    email: "yujonglee@hyprnote.com",
+    email: "yujonglee@pinote.org",
     avatar: "Y",
     role: "workspace_owner",
   },

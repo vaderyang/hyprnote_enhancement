@@ -384,7 +384,7 @@ mod tests {
                         id: "whisper_cpp".to_string(),
                         assets_dir: dirs::data_dir()
                             .unwrap()
-                            .join("com.hyprnote.dev/stt/ggml-small-q8_0.bin")
+                            .join("com.pinote.dev/stt/ggml-small-q8_0.bin")
                             .to_str()
                             .unwrap()
                             .to_string(),

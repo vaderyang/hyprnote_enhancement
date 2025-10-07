@@ -56,7 +56,7 @@ function showChangelogToast(newVersion: string, previousVersion: string) {
         onClick: async () => {
           sonnerToast.dismiss("changelog-notification");
           try {
-            await openURL("https://hyprnote.com/changelog");
+            await openURL("https://pinote.org/changelog");
           } catch (error) {
             console.error("Failed to open changelog:", error);
           }

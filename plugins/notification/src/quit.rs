@@ -20,7 +20,7 @@ pub fn create_quit_handler<R: tauri::Runtime>(
                 } else {
                     is_exit_intent = app_handle
                         .dialog()
-                        .message("Hyprnote is currently recording.")
+                        .message("Pinote is currently recording.")
                         .title("Do you really want to quit?")
                         .buttons(tauri_plugin_dialog::MessageDialogButtons::OkCancelCustom(
                             "Quit".to_string(),

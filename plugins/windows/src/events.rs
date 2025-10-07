@@ -5,7 +5,7 @@ use tauri_specta::Event;
 
 use crate::{HyprWindow, WindowsPluginExt};
 
-// TODO: https://github.com/fastrepl/hyprnote/commit/150c8a1 this not worked. webview_window not found.
+// TODO: https://github.com/fastrepl/pinote/commit/150c8a1 this not worked. webview_window not found.
 pub fn on_window_event(window: &tauri::Window<tauri::Wry>, event: &tauri::WindowEvent) {
     let app = window.app_handle();
 
@@ -115,12 +115,12 @@ mod test {
     fn navigate_from_str() {
         let test_cases = vec![
             (
-                "hypr://hyprnote.com/app/new?calendarEventId=123&record=true",
+                "hypr://pinote.org/app/new?calendarEventId=123&record=true",
                 "/app/new",
                 Some(serde_json::json!({ "calendarEventId": "123", "record": "true" })),
             ),
             (
-                "hypr://hyprnote.com/app/new?record=true",
+                "hypr://pinote.org/app/new?record=true",
                 "/app/new",
                 Some(serde_json::json!({ "record": "true" })),
             ),

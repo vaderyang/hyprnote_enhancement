@@ -59,7 +59,7 @@ function UnlimitedSection() {
             <div>
               <h3 className="font-medium text-green-800">All Features Unlocked</h3>
               <p className="text-sm text-green-700 mt-1">
-                Enjoy unlimited access to all Hyprnote features including:
+                Enjoy unlimited access to all Pinote features including:
               </p>
               <ul className="text-sm text-green-700 mt-2 space-y-1">
                 <li>• Unlimited chat messages with AI</li>

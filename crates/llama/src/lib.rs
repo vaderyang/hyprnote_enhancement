@@ -441,7 +441,7 @@ mod tests {
     fn get_model() -> Llama {
         let model_path = dirs::data_dir()
             .unwrap()
-            .join("com.hyprnote.dev")
+            .join("com.pinote.dev")
             .join("ttt/hypr-llm.gguf");
 
         Llama::new(model_path).unwrap()

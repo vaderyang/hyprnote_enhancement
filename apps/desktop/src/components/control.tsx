@@ -45,7 +45,7 @@ export const ErrorComponent: ErrorRouteComponent = ({ error }) => {
         <Link to="/app/new">
           <Button variant="ghost">Back to home</Button>
         </Link>
-        <Button variant="ghost" onClick={() => open("mailto:ai_embassy@netis.com?subject=Hyprnote Error Report")}>
+        <Button variant="ghost" onClick={() => open("mailto:ai_embassy@netis.com?subject=Pinote Error Report")}>
           Report Issue via Email
         </Button>
       </div>

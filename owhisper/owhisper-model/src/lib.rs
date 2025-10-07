@@ -124,19 +124,19 @@ impl Model {
                 vec![
                     Asset {
                         name: "tokenizer.json".to_string(),
-                        url: "https://storage2.hyprnote.com/v0/UsefulSensors/moonshine/tokenizer.json".to_string(),
+                        url: "https://storage2.pinote.org/v0/UsefulSensors/moonshine/tokenizer.json".to_string(),
                         size: 1985530,
                         checksum: 1800591672,
                     },
                     Asset {
                         name: "encoder_model.onnx".to_string(),
-                        url: "https://storage2.hyprnote.com/v0/UsefulSensors/moonshine/onnx/merged/base/float/encoder_model.onnx".to_string(),
+                        url: "https://storage2.pinote.org/v0/UsefulSensors/moonshine/onnx/merged/base/float/encoder_model.onnx".to_string(),
                         size: 80818781,
                         checksum: 4261777944,
                     },
                     Asset {
                         name: "decoder_model_merged.onnx".to_string(),
-                        url: "https://storage2.hyprnote.com/v0/UsefulSensors/moonshine/onnx/merged/base/float/decoder_model_merged.onnx".to_string(),
+                        url: "https://storage2.pinote.org/v0/UsefulSensors/moonshine/onnx/merged/base/float/decoder_model_merged.onnx".to_string(),
                         size: 166211345,
                         checksum: 4284499744,
                     },
@@ -146,19 +146,19 @@ impl Model {
                 vec![
                     Asset {
                         name: "tokenizer.json".to_string(),
-                        url: "https://storage2.hyprnote.com/v0/UsefulSensors/moonshine/tokenizer.json".to_string(),
+                        url: "https://storage2.pinote.org/v0/UsefulSensors/moonshine/tokenizer.json".to_string(),
                         size: 1985530,
                         checksum: 1800591672,
                     },
                     Asset {
                         name: "encoder_model.onnx".to_string(),
-                        url: "https://storage2.hyprnote.com/v0/UsefulSensors/moonshine/onnx/merged/base/quantized/encoder_model.onnx".to_string(),
+                        url: "https://storage2.pinote.org/v0/UsefulSensors/moonshine/onnx/merged/base/quantized/encoder_model.onnx".to_string(),
                         size: 20513063,
                         checksum: 2520442982,
                     },
                     Asset {
                         name: "decoder_model_merged.onnx".to_string(),
-                        url: "https://storage2.hyprnote.com/v0/UsefulSensors/moonshine/onnx/merged/base/quantized/decoder_model_merged.onnx".to_string(),
+                        url: "https://storage2.pinote.org/v0/UsefulSensors/moonshine/onnx/merged/base/quantized/decoder_model_merged.onnx".to_string(),
                         size: 42498870,
                         checksum: 4007751459,
                     },
@@ -168,19 +168,19 @@ impl Model {
                 vec![
                     Asset {
                         name: "tokenizer.json".to_string(),
-                        url: "https://storage2.hyprnote.com/v0/UsefulSensors/moonshine/tokenizer.json".to_string(),
+                        url: "https://storage2.pinote.org/v0/UsefulSensors/moonshine/tokenizer.json".to_string(),
                         size: 1985530,
                         checksum: 1800591672,
                     },
                     Asset {
                         name: "encoder_model.onnx".to_string(),
-                        url: "https://storage2.hyprnote.com/v0/UsefulSensors/moonshine/onnx/merged/base/quantized_4bit/encoder_model.onnx".to_string(),
+                        url: "https://storage2.pinote.org/v0/UsefulSensors/moonshine/onnx/merged/base/quantized_4bit/encoder_model.onnx".to_string(),
                         size: 31027744,
                         checksum: 1761974521,
                     },
                     Asset {
                         name: "decoder_model_merged.onnx".to_string(),
-                        url: "https://storage2.hyprnote.com/v0/UsefulSensors/moonshine/onnx/merged/base/quantized_4bit/decoder_model_merged.onnx".to_string(),
+                        url: "https://storage2.pinote.org/v0/UsefulSensors/moonshine/onnx/merged/base/quantized_4bit/decoder_model_merged.onnx".to_string(),
                         size: 42427308,
                         checksum: 1460870890,
                     },
@@ -190,19 +190,19 @@ impl Model {
                 vec![
                     Asset {
                         name: "tokenizer.json".to_string(),
-                        url: "https://storage2.hyprnote.com/v0/UsefulSensors/moonshine/tokenizer.json".to_string(),
+                        url: "https://storage2.pinote.org/v0/UsefulSensors/moonshine/tokenizer.json".to_string(),
                         size: 1985530,
                         checksum: 1800591672,
                     },
                     Asset {
                         name: "encoder_model.onnx".to_string(),
-                        url: "https://storage2.hyprnote.com/v0/UsefulSensors/moonshine/onnx/merged/tiny/float/encoder_model.onnx".to_string(),
+                        url: "https://storage2.pinote.org/v0/UsefulSensors/moonshine/onnx/merged/tiny/float/encoder_model.onnx".to_string(),
                         size: 30882331,
                         checksum: 3259662431,
                     },
                     Asset {
                         name: "decoder_model_merged.onnx".to_string(),
-                        url: "https://storage2.hyprnote.com/v0/UsefulSensors/moonshine/onnx/merged/tiny/float/decoder_model_merged.onnx".to_string(),
+                        url: "https://storage2.pinote.org/v0/UsefulSensors/moonshine/onnx/merged/tiny/float/decoder_model_merged.onnx".to_string(),
                         size: 78227550,
                         checksum: 2598806900,
                     },
@@ -212,19 +212,19 @@ impl Model {
                 vec![
                     Asset {
                         name: "tokenizer.json".to_string(),
-                        url: "https://storage2.hyprnote.com/v0/UsefulSensors/moonshine/tokenizer.json".to_string(),
+                        url: "https://storage2.pinote.org/v0/UsefulSensors/moonshine/tokenizer.json".to_string(),
                         size: 1985530,
                         checksum: 1800591672,
                     },
                     Asset {
                         name: "encoder_model.onnx".to_string(),
-                        url: "https://storage2.hyprnote.com/v0/UsefulSensors/moonshine/onnx/merged/tiny/quantized_4bit/encoder_model.onnx".to_string(),
+                        url: "https://storage2.pinote.org/v0/UsefulSensors/moonshine/onnx/merged/tiny/quantized_4bit/encoder_model.onnx".to_string(),
                         size: 13003282,
                         checksum: 26504769,
                     },
                     Asset {
                         name: "decoder_model_merged.onnx".to_string(),
-                        url: "https://storage2.hyprnote.com/v0/UsefulSensors/moonshine/onnx/merged/tiny/quantized_4bit/decoder_model_merged.onnx".to_string(),
+                        url: "https://storage2.pinote.org/v0/UsefulSensors/moonshine/onnx/merged/tiny/quantized_4bit/decoder_model_merged.onnx".to_string(),
                         size: 20189543,
                         checksum: 158090752,
                     },
@@ -234,19 +234,19 @@ impl Model {
                 vec![
                     Asset {
                         name: "tokenizer.json".to_string(),
-                        url: "https://storage2.hyprnote.com/v0/UsefulSensors/moonshine/tokenizer.json".to_string(),
+                        url: "https://storage2.pinote.org/v0/UsefulSensors/moonshine/tokenizer.json".to_string(),
                         size: 1985530,
                         checksum: 1800591672,
                     },
                     Asset {
                         name: "encoder_model.onnx".to_string(),
-                        url: "https://storage2.hyprnote.com/v0/UsefulSensors/moonshine/onnx/merged/tiny/quantized/encoder_model.onnx".to_string(),
+                        url: "https://storage2.pinote.org/v0/UsefulSensors/moonshine/onnx/merged/tiny/quantized/encoder_model.onnx".to_string(),
                         size: 7937661,
                         checksum: 633860095,
                     },
                     Asset {
                         name: "decoder_model_merged.onnx".to_string(),
-                        url: "https://storage2.hyprnote.com/v0/UsefulSensors/moonshine/onnx/merged/tiny/quantized/decoder_model_merged.onnx".to_string(),
+                        url: "https://storage2.pinote.org/v0/UsefulSensors/moonshine/onnx/merged/tiny/quantized/decoder_model_merged.onnx".to_string(),
                         size: 20243286,
                         checksum: 4021622913,
                     },

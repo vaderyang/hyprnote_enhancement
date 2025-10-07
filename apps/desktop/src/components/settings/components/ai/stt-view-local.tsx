@@ -192,7 +192,7 @@ function BasicModelsSection({
         title="Basic Models"
         description="Default inference mode powered by Whisper.cpp."
         status={status}
-        docsUrl="https://docs.hyprnote.com/models"
+        docsUrl="https://docs.pinote.org/models"
       />
 
       {/* Models List */}

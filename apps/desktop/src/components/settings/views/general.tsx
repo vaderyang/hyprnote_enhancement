@@ -248,10 +248,10 @@ export default function General() {
                   </FormLabel>
                   <FormDescription className="flex flex-col">
                     <span>
-                      Help us improve Hyprnote by sharing anonymous usage data.
+                      Help us improve Pinote by sharing anonymous usage data.
                     </span>
                     <span>
-                      Restart Hyprnote for the change to take effect.
+                      Restart Pinote for the change to take effect.
                     </span>
                   </FormDescription>
                 </div>

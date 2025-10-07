@@ -1,9 +1,9 @@
 ## Reporting Issues
 
-### What version of Hyprnote are you using?
+### What version of Pinote are you using?
 
 ```bash
-curl -s https://raw.githubusercontent.com/fastrepl/hyprnote/refs/heads/main/scripts/info.sh | bash
+curl -s https://raw.githubusercontent.com/fastrepl/pinote/refs/heads/main/scripts/info.sh | bash
 ```
 
 Running above script will output something like the following:
@@ -21,9 +21,9 @@ Running above script will output something like the following:
 }
 ```
 
-You can find latest version at [releases page](https://github.com/fastrepl/hyprnote/releases).
+You can find latest version at [releases page](https://github.com/fastrepl/pinote/releases).
 
-Also, download button in [docs](https://docs.hyprnote.com) always points to the latest version.
+Also, download button in [docs](https://docs.pinote.org) always points to the latest version.
 
 ## Development
 
@@ -45,8 +45,8 @@ npm install -g pnpm turbo
 
 ### Installation
 ```bash
-git clone https://github.com/fastrepl/hyprnote.git
-cd hyprnote
+git clone https://github.com/fastrepl/pinote.git
+cd pinote
 pnpm install && turbo -F @hypr/desktop tauri:dev
 ```
 

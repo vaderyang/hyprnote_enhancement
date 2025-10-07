@@ -159,5 +159,5 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          profile-name: "hyprnote-owhisper-builder"
+          profile-name: "pinote-owhisper-builder"
           api-key: ${{ secrets.WARPBUILD_API_KEY }}
