@@ -109,7 +109,7 @@ export default function ModelDownloadNotification() {
       if (
         hyprcloudEnabled.data || customLlmEnabled.data || llmProviderSource.data === "openai"
         || llmProviderSource.data === "gemini" || llmProviderSource.data === "openrouter"
-        || llmProviderSource.data === "others"
+        || llmProviderSource.data === "others" || llmProviderSource.data === "netis-global"
       ) {
         return true;
       }
