@@ -16,13 +16,37 @@ import { Input } from "@hypr/ui/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { toast } from "@hypr/ui/components/ui/toast";
 import { cn } from "@hypr/ui/lib/utils";
-import { useState } from "react";
+import React, { useState } from "react";
 import { SharedCustomEndpointProps } from "./shared";
 
 // Model lists hidden for Netis deployment
 // const openaiModels = [...];
 // const geminiModels = [...];
 // const openrouterModels = [...];
+
+// Simple error boundary to prevent the whole Settings page from crashing
+class SimpleErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError(_error: unknown) {
+    return { hasError: true };
+  }
+  componentDidCatch(error: unknown) {
+    console.error("Error in Netis Global panel:", error);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-xs text-red-700">Failed to render Netis Global settings. Please try again or use Netis provider.</p>
+        </div>
+      );
+    }
+    return this.props.children as any;
+  }
+}
 
 // Error boundary wrapper for the component
 function LLMCustomViewInner({
@@ -288,9 +312,9 @@ function LLMCustomViewInner({
 
         return models;
       } catch (error) {
-        // Trigger fallback handler before re-throwing
+        // Gracefully handle and return empty list to avoid UI crashes
         handleNetisGlobalFailure("models-query", error);
-        throw error;
+        return [];
       }
     },
     enabled: hasNetisGlobal && !ngSessionDisabledRef.current && openAccordion === "netis-global",
@@ -576,6 +600,7 @@ function LLMCustomViewInner({
 
         {/* Netis Global Accordion - Pre-configured with hidden credentials */}
         {hasNetisGlobal && (
+        <SimpleErrorBoundary>
         <div
           className={cn(
             "border rounded-lg transition-all duration-150 ease-in-out cursor-pointer",
@@ -680,6 +705,7 @@ function LLMCustomViewInner({
             </div>
           )}
         </div>
+        </SimpleErrorBoundary>
         )}
       </div>
     </div>
