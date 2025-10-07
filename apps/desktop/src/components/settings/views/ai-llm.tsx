@@ -441,6 +441,9 @@ function LlmAIInner() {
   });
 
   useEffect(() => {
+    // Only sync form values when NOT on netis-global accordion (it has its own state)
+    if (openAccordion === "netis-global") return;
+    
     if (othersApiBaseQuery.data && othersApiBaseQuery.data !== "https://pro.hyprnote.com") {
       customForm.setValue("api_base", othersApiBaseQuery.data);
     }
@@ -450,7 +453,7 @@ function LlmAIInner() {
     if (othersModelQuery.data) {
       customForm.setValue("model", othersModelQuery.data);
     }
-  }, [othersApiBaseQuery.data, othersApiKeyQuery.data, othersModelQuery.data, customForm]);
+  }, [othersApiBaseQuery.data, othersApiKeyQuery.data, othersModelQuery.data, customForm, openAccordion]);
 
   useEffect(() => {
     if (openAccordion === "others") {

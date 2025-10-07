@@ -446,6 +446,9 @@ function LLMCustomViewInner({
       return models;
     },
     enabled: (() => {
+      // Don't fetch models when Netis Global accordion is open (it has its own query)
+      if (openAccordion === "netis-global") return false;
+      
       const isLocal = debouncedApiBase?.includes("localhost") || debouncedApiBase?.includes("127.0.0.1");
 
       try {
