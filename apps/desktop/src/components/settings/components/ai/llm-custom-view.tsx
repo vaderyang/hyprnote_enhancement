@@ -2,7 +2,7 @@ import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import useDebouncedCallback from "beautiful-react-hooks/useDebouncedCallback";
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import {
   Form,
@@ -14,6 +14,7 @@ import {
 } from "@hypr/ui/components/ui/form";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
+import { toast } from "@hypr/ui/components/ui/toast";
 import { cn } from "@hypr/ui/lib/utils";
 import { useState } from "react";
 import { SharedCustomEndpointProps } from "./shared";
@@ -164,8 +165,62 @@ export function LLMCustomView({
 
   // Netis Global - Pre-configured provider with hidden credentials
   const netisGlobalApiBase = "https://llm.netis.io/v1";
-  const netisGlobalApiKey = import.meta.env.VITE_NETIS_GLOBAL_API_KEY || "";
+  const netisGlobalApiKey = String(import.meta.env.VITE_NETIS_GLOBAL_API_KEY ?? "").trim();
+  const hasNetisGlobal = netisGlobalApiKey.length > 0;
   const [netisGlobalSelectedModel, setNetisGlobalSelectedModel] = useState("qwen-3-coder-480b");
+
+  // Session-level guard to prevent repeated failures
+  const ngSessionDisabledRef = useRef<boolean>(
+    typeof sessionStorage !== "undefined" && sessionStorage.getItem("netisGlobalDisabled") === "1"
+  );
+
+  // Default Netis configuration for fallback
+  const DEFAULT_NETIS_CONFIG = {
+    api_base: "http://v.netis.com.cn:13000/v1",
+    api_key: "sk-418Nlx53Dvu87o-TWOgyJg",
+    model: "gpt-4o",
+  };
+
+  const disableNetisGlobalForSession = useCallback(() => {
+    if (ngSessionDisabledRef.current) return;
+    ngSessionDisabledRef.current = true;
+    try {
+      sessionStorage.setItem("netisGlobalDisabled", "1");
+    } catch {
+      // sessionStorage might not be available
+    }
+  }, []);
+
+  // Centralized fallback handler
+  const handleNetisGlobalFailure = useCallback(
+    (reason: string, err?: unknown) => {
+      if (ngSessionDisabledRef.current) return;
+
+      console.warn(`Netis Global failed (${reason}):`, err);
+      disableNetisGlobalForSession();
+
+      // User-friendly notification
+      toast({
+        title: "Netis Global Unavailable",
+        content: "Switching to Netis provider instead.",
+        duration: 3000,
+      });
+
+      // Switch UI to Netis ("others")
+      setOpenAccordion("others");
+
+      // Configure "others" with default Netis settings
+      try {
+        configureCustomEndpoint({
+          provider: "others",
+          ...DEFAULT_NETIS_CONFIG,
+        });
+      } catch (e) {
+        console.warn("Failed to configure Netis defaults on others", e);
+      }
+    },
+    [configureCustomEndpoint, disableNetisGlobalForSession, setOpenAccordion]
+  );
 
   // Restore Netis Global model from saved settings when accordion opens
   useEffect(() => {
@@ -178,7 +233,7 @@ export function LLMCustomView({
     }
   }, [openAccordion, customLLMEnabled.data, customForm, netisGlobalApiBase]);
 
-  // Fetch Netis Global models
+  // Fetch Netis Global models with comprehensive error handling
   const netisGlobalModels = useQuery({
     queryKey: ["netis-global-models"],
     queryFn: async (): Promise<string[]> => {
@@ -200,15 +255,13 @@ export function LLMCustomView({
         });
 
         if (!response.ok) {
-          console.error(`Failed to fetch Netis Global models: HTTP ${response.status}`);
-          return [];
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
         const data = await response.json();
 
         if (!data.data || !Array.isArray(data.data)) {
-          console.error("Invalid response format from Netis Global API");
-          return [];
+          throw new Error("Invalid response format from Netis Global API");
         }
 
         const models = data.data
@@ -220,35 +273,63 @@ export function LLMCustomView({
 
         return models;
       } catch (error) {
-        console.error("Error fetching Netis Global models:", error);
-        return [];
+        // Let onError handle it without throwing to ErrorBoundary
+        throw error;
       }
     },
-    enabled: Boolean(netisGlobalApiKey && netisGlobalApiKey.trim().length > 0 && openAccordion === "netis-global"),
-    retry: 1,
+    enabled: hasNetisGlobal && !ngSessionDisabledRef.current && openAccordion === "netis-global",
+    retry: false,
     refetchInterval: false,
     throwOnError: false,
+    onError: (err: unknown) => {
+      handleNetisGlobalFailure("models-query", err);
+    },
   });
 
-  // Auto-configure Netis Global when model is selected
+  // Auto-configure Netis Global when model is selected with error handling
   useEffect(() => {
-    // Only configure if we have a valid API key and model selected
-    // AND the user has actually opened the accordion and interacted with it
+    if (!hasNetisGlobal || ngSessionDisabledRef.current) return;
     if (
-      openAccordion === "netis-global"
-      && netisGlobalSelectedModel
-      && netisGlobalApiKey
-      && userOpenedAccordion === "netis-global"
+      openAccordion !== "netis-global"
+      || !netisGlobalSelectedModel
+      || !netisGlobalApiKey
+      || userOpenedAccordion !== "netis-global"
     ) {
-      setHyprCloudEnabledMutation.mutate(false);
-      configureCustomEndpoint({
-        provider: "netis-global",
-        api_base: netisGlobalApiBase,
-        api_key: netisGlobalApiKey,
-        model: netisGlobalSelectedModel,
-      });
+      return;
     }
-  }, [netisGlobalSelectedModel, openAccordion, userOpenedAccordion, configureCustomEndpoint, setHyprCloudEnabledMutation, netisGlobalApiBase, netisGlobalApiKey]);
+
+    let cancelled = false;
+    const run = async () => {
+      try {
+        setHyprCloudEnabledMutation.mutate(false);
+        configureCustomEndpoint({
+          provider: "netis-global",
+          api_base: netisGlobalApiBase,
+          api_key: netisGlobalApiKey,
+          model: netisGlobalSelectedModel,
+        });
+      } catch (err) {
+        if (!cancelled) {
+          handleNetisGlobalFailure("auto-config", err);
+        }
+      }
+    };
+    run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    hasNetisGlobal,
+    netisGlobalSelectedModel,
+    openAccordion,
+    userOpenedAccordion,
+    configureCustomEndpoint,
+    setHyprCloudEnabledMutation,
+    netisGlobalApiBase,
+    netisGlobalApiKey,
+    handleNetisGlobalFailure,
+  ]);
 
   // temporary fix for fetching models smoothly
   const [debouncedApiBase, setDebouncedApiBase] = useState("");
@@ -474,6 +555,7 @@ export function LLMCustomView({
         </div>
 
         {/* Netis Global Accordion - Pre-configured with hidden credentials */}
+        {hasNetisGlobal && (
         <div
           className={cn(
             "border rounded-lg transition-all duration-150 ease-in-out cursor-pointer",
@@ -578,6 +660,7 @@ export function LLMCustomView({
             </div>
           )}
         </div>
+        )}
       </div>
     </div>
   );
