@@ -192,12 +192,12 @@ function LLMCustomViewInner({
     typeof sessionStorage !== "undefined" && sessionStorage.getItem("netisGlobalDisabled") === "1"
   );
 
-  // Default Netis configuration for fallback
-  const DEFAULT_NETIS_CONFIG = {
+  // Default Netis configuration for fallback - use ref for stable reference
+  const DEFAULT_NETIS_CONFIG = useRef({
     api_base: "http://v.netis.com.cn:13000/v1",
     api_key: "sk-418Nlx53Dvu87o-TWOgyJg",
     model: "gpt-4o",
-  };
+  });
 
   const disableNetisGlobalForSession = useCallback(() => {
     if (ngSessionDisabledRef.current) return;
@@ -240,7 +240,7 @@ function LLMCustomViewInner({
       try {
         configureCustomEndpoint({
           provider: "others",
-          ...DEFAULT_NETIS_CONFIG,
+          ...DEFAULT_NETIS_CONFIG.current,
         });
       } catch (e) {
         console.warn("Failed to configure Netis defaults on others", e);
@@ -249,13 +249,23 @@ function LLMCustomViewInner({
     [configureCustomEndpoint, disableNetisGlobalForSession, setOpenAccordion]
   );
 
-  // Restore Netis Global model from saved settings when accordion opens
+  // Restore provider-specific config when accordion opens
   useEffect(() => {
     if (openAccordion === "netis-global" && customLLMEnabled.data) {
-      // Check if we have saved "others" settings that match Netis Global endpoint
+      // Restore Netis Global model from saved settings
       const values = customForm.getValues();
       if (values.api_base === netisGlobalApiBase && values.model) {
         setNetisGlobalSelectedModel(values.model);
+      }
+    } else if (openAccordion === "others" && customLLMEnabled.data) {
+      // Restore Netis defaults when switching to Netis accordion
+      const currentValues = customForm.getValues();
+      
+      // Only restore if current values are not Netis (i.e., coming from Netis Global)
+      if (currentValues.api_base !== DEFAULT_NETIS_CONFIG.current.api_base) {
+        customForm.setValue("api_base", DEFAULT_NETIS_CONFIG.current.api_base);
+        customForm.setValue("api_key", DEFAULT_NETIS_CONFIG.current.api_key);
+        // Don't restore model automatically - let user select from the correct list
       }
     }
   }, [openAccordion, customLLMEnabled.data, customForm, netisGlobalApiBase]);
