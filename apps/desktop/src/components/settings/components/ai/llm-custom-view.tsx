@@ -165,7 +165,7 @@ export function LLMCustomView({
   // Netis Global - Pre-configured provider with hidden credentials
   const netisGlobalApiBase = "https://llm.netis.io/v1";
   const netisGlobalApiKey = import.meta.env.VITE_NETIS_GLOBAL_API_KEY || "";
-  const [netisGlobalSelectedModel, setNetisGlobalSelectedModel] = useState("qwen3-coder-480b");
+  const [netisGlobalSelectedModel, setNetisGlobalSelectedModel] = useState("qwen-3-coder-480b");
 
   // Restore Netis Global model from saved settings when accordion opens
   useEffect(() => {
@@ -225,7 +225,8 @@ export function LLMCustomView({
 
   // Auto-configure Netis Global when model is selected
   useEffect(() => {
-    if (openAccordion === "netis-global" && netisGlobalSelectedModel) {
+    // Only configure if we have a valid API key and model selected
+    if (openAccordion === "netis-global" && netisGlobalSelectedModel && netisGlobalApiKey) {
       setHyprCloudEnabledMutation.mutate(false);
       configureCustomEndpoint({
         provider: "netis-global",
@@ -251,11 +252,11 @@ export function LLMCustomView({
 
   // Watch for form changes
   useEffect(() => {
-    const apiBase = customForm.watch("api_base");
-    const apiKey = customForm.watch("api_key");
-
-    updateDebouncedValues(apiBase || "", apiKey || "");
-  }, [customForm.watch("api_base"), customForm.watch("api_key"), updateDebouncedValues]);
+    const subscription = customForm.watch((values) => {
+      updateDebouncedValues(values.api_base || "", values.api_key || "");
+    });
+    return () => subscription.unsubscribe();
+  }, [customForm, updateDebouncedValues]);
 
   const othersModels = useQuery({
     queryKey: ["others-direct-models", debouncedApiBase, debouncedApiKey?.slice(0, 8)],
@@ -538,7 +539,7 @@ export function LLMCustomView({
                         <Input
                           value={netisGlobalSelectedModel}
                           onChange={(e) => setNetisGlobalSelectedModel(e.target.value)}
-                          placeholder="qwen3-coder-480b"
+                          placeholder="qwen-3-coder-480b"
                         />
                       )
                       : (
