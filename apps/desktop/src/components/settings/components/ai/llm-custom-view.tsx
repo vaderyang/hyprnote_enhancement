@@ -233,7 +233,13 @@ export function LLMCustomView({
   // Auto-configure Netis Global when model is selected
   useEffect(() => {
     // Only configure if we have a valid API key and model selected
-    if (openAccordion === "netis-global" && netisGlobalSelectedModel && netisGlobalApiKey) {
+    // AND the user has actually opened the accordion and interacted with it
+    if (
+      openAccordion === "netis-global"
+      && netisGlobalSelectedModel
+      && netisGlobalApiKey
+      && userOpenedAccordion === "netis-global"
+    ) {
       setHyprCloudEnabledMutation.mutate(false);
       configureCustomEndpoint({
         provider: "netis-global",
@@ -242,7 +248,7 @@ export function LLMCustomView({
         model: netisGlobalSelectedModel,
       });
     }
-  }, [netisGlobalSelectedModel, openAccordion, configureCustomEndpoint, setHyprCloudEnabledMutation, netisGlobalApiBase, netisGlobalApiKey]);
+  }, [netisGlobalSelectedModel, openAccordion, userOpenedAccordion, configureCustomEndpoint, setHyprCloudEnabledMutation, netisGlobalApiBase, netisGlobalApiKey]);
 
   // temporary fix for fetching models smoothly
   const [debouncedApiBase, setDebouncedApiBase] = useState("");
