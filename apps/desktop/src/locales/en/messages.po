@@ -945,7 +945,7 @@ msgstr "people"
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:475
 msgid "Pre-configured Netis Global AI Service"
-msgstr "Pre-configured Netis Global AI Service"
+msgstr "Netis Global AI Service"
 
 #: src/components/share-and-permission/publish.tsx:15
 msgid "Publish your note"
@@ -1192,7 +1192,7 @@ msgstr "This is the name of the company you work for."
 
 #: src/components/settings/components/ai/llm-custom-view.tsx:491
 msgid "This provider is pre-configured with Netis Global credentials. Simply select a model to get started."
-msgstr "This provider is pre-configured with Netis Global credentials. Simply select a model to get started."
+msgstr "Select a model to get started."
 
 #: src/components/finder/views/calendar-view.tsx:64
 msgid "Today"

@@ -1,17 +1,8 @@
 import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
-import useDebouncedCallback from "beautiful-react-hooks/useDebouncedCallback";
 import { useCallback, useEffect, useRef } from "react";
 
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@hypr/ui/components/ui/form";
 import { Input } from "@hypr/ui/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hypr/ui/components/ui/select";
 import { toast } from "@hypr/ui/components/ui/toast";
@@ -99,45 +90,6 @@ function LLMCustomViewInner({
     }
   }, [hyprCloudEnabled?.data, setOpenAccordion]);
 
-  useEffect(() => {
-    const subscription = customForm.watch((values) => {
-      // Only auto-configure when the Netis (others) accordion is open
-      if (
-        openAccordion === "others"
-        && values.api_base && values.api_base !== "https://pro.hyprnote.com" && values.model
-      ) {
-        // Check if this configuration is already applied
-        const configKey = `others:${values.api_base}:${values.model}`;
-        const lastKey = lastConfiguredRef.current ? `${lastConfiguredRef.current.provider}:${lastConfiguredRef.current.api_base}:${lastConfiguredRef.current.model}` : null;
-        
-        if (configKey === lastKey) {
-          // Already configured, skip to prevent infinite loop
-          return;
-        }
-        
-        try {
-          setHyprCloudEnabledMutation.mutate(false);
-          // Basic URL validation
-          new URL(values.api_base);
-          configureCustomEndpoint({
-            provider: "others",
-            api_base: values.api_base,
-            api_key: values.api_key,
-            model: values.model,
-          });
-          // Track this configuration
-          lastConfiguredRef.current = {
-            provider: "others",
-            api_base: values.api_base,
-            model: values.model,
-          };
-        } catch {
-          // invalid URL
-        }
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [openAccordion, customForm, configureCustomEndpoint, setHyprCloudEnabledMutation]);
 
   const handleAccordionClick = (provider: "others" | "netis-global") => {
     try {
@@ -390,87 +342,101 @@ function LLMCustomViewInner({
     netisGlobalApiKey,
   ]);
 
-  // temporary fix for fetching models smoothly
-  const [debouncedApiBase, setDebouncedApiBase] = useState("");
-  const [debouncedApiKey, setDebouncedApiKey] = useState("");
-
-  const updateDebouncedValues = useDebouncedCallback(
-    (apiBase: string, apiKey: string) => {
-      setDebouncedApiBase(apiBase);
-      setDebouncedApiKey(apiKey);
-    },
-    [],
-    2000,
-  );
-
-  // Watch for form changes
-  useEffect(() => {
-    const subscription = customForm.watch((values) => {
-      updateDebouncedValues(values.api_base || "", values.api_key || "");
-    });
-    return () => subscription.unsubscribe();
-  }, [customForm, updateDebouncedValues]);
-
-  const othersModels = useQuery({
-    queryKey: ["others-direct-models", debouncedApiBase, debouncedApiKey?.slice(0, 8)],
+  // Netis models - separate query with hardcoded Netis config
+  const netisModels = useQuery<string[], Error>({
+    queryKey: ["netis-models", DEFAULT_NETIS_CONFIG.current.api_base],
     queryFn: async (): Promise<string[]> => {
-      const apiBase = debouncedApiBase;
-      const apiKey = debouncedApiKey;
+      try {
+        const url = new URL(DEFAULT_NETIS_CONFIG.current.api_base);
+        url.pathname += url.pathname.endsWith("/") ? "models" : "/models";
 
-      const url = new URL(apiBase);
-      url.pathname += url.pathname.endsWith("/") ? "models" : "/models";
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+        };
 
-      console.log("onquery");
-      console.log(url.toString());
+        if (DEFAULT_NETIS_CONFIG.current.api_key && DEFAULT_NETIS_CONFIG.current.api_key.trim().length > 0) {
+          headers["Authorization"] = `Bearer ${DEFAULT_NETIS_CONFIG.current.api_key}`;
+        }
 
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-      };
-
-      if (apiKey && apiKey.trim().length > 0) {
-        headers["Authorization"] = `Bearer ${apiKey}`;
-      }
-
-      const response = await tauriFetch(url.toString(), {
-        method: "GET",
-        headers,
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-
-      if (!data.data || !Array.isArray(data.data)) {
-        throw new Error("Invalid response format");
-      }
-
-      const models = data.data
-        .map((model: any) => model.id)
-        .filter((id: string) => {
-          const excludeKeywords = ["dall-e", "codex", "whisper"];
-          return !excludeKeywords.some(keyword => id.includes(keyword));
+        const response = await tauriFetch(url.toString(), {
+          method: "GET",
+          headers,
         });
 
-      return models;
-    },
-    enabled: (() => {
-      // Don't fetch models when Netis Global accordion is open (it has its own query)
-      if (openAccordion === "netis-global") return false;
-      
-      const isLocal = debouncedApiBase?.includes("localhost") || debouncedApiBase?.includes("127.0.0.1");
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
 
-      try {
-        return Boolean(debouncedApiBase && new URL(debouncedApiBase) && (isLocal || debouncedApiKey));
-      } catch {
-        return false;
+        const data = await response.json();
+
+        if (!data.data || !Array.isArray(data.data)) {
+          throw new Error("Invalid response format from Netis API");
+        }
+
+        const models = data.data
+          .map((model: any) => model.id)
+          .filter((id: string) => {
+            const excludeKeywords = ["dall-e", "codex", "whisper"];
+            return !excludeKeywords.some(keyword => id.includes(keyword));
+          });
+
+        return models;
+      } catch (error) {
+        console.error("Failed to fetch Netis models:", error);
+        return [];
       }
-    })(),
+    },
+    enabled: openAccordion === "others",
     retry: 1,
     refetchInterval: false,
     throwOnError: false,
   });
+
+  // Netis selected model state (separate from Netis Global)
+  const [netisSelectedModel, setNetisSelectedModel] = useState(DEFAULT_NETIS_CONFIG.current.model);
+
+  // Auto-configure Netis when model is selected
+  useEffect(() => {
+    if (
+      openAccordion !== "others"
+      || !netisSelectedModel
+      || userOpenedAccordion !== "others"
+    ) {
+      return;
+    }
+
+    // Check if this configuration is already applied
+    const configKey = `others:${DEFAULT_NETIS_CONFIG.current.api_base}:${netisSelectedModel}`;
+    const lastKey = lastConfiguredRef.current ? `${lastConfiguredRef.current.provider}:${lastConfiguredRef.current.api_base}:${lastConfiguredRef.current.model}` : null;
+    
+    if (configKey === lastKey) {
+      return;
+    }
+
+    try {
+      setHyprCloudEnabledMutation.mutate(false);
+      configureCustomEndpoint({
+        provider: "others",
+        api_base: DEFAULT_NETIS_CONFIG.current.api_base,
+        api_key: DEFAULT_NETIS_CONFIG.current.api_key,
+        model: netisSelectedModel,
+      });
+      lastConfiguredRef.current = {
+        provider: "others",
+        api_base: DEFAULT_NETIS_CONFIG.current.api_base,
+        model: netisSelectedModel,
+      };
+    } catch (err) {
+      console.error("Error in Netis auto-config:", err);
+    }
+  }, [
+    netisSelectedModel,
+    openAccordion,
+    userOpenedAccordion,
+    configureCustomEndpoint,
+    setHyprCloudEnabledMutation,
+  ]);
+
 
   return (
     <div className="space-y-6">
@@ -514,103 +480,54 @@ function LLMCustomViewInner({
           {openAccordion === "others" && (
             <div className="px-4 pb-4 border-t">
               <div className="mt-4">
-                <Form {...customForm}>
-                  <form className="space-y-4">
-                    {/* Base URL and API Key fields (HIDDEN)
-                    <FormField
-                      control={customForm.control}
-                      name="api_base"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm font-medium">
-                            <Trans>API Base URL</Trans>
-                          </FormLabel>
-                          <FormDescription className="text-xs">
-                            <Trans>Enter the base URL for your custom LLM endpoint</Trans>
-                          </FormDescription>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              placeholder="http://localhost:11434/v1"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
+                <div className="space-y-4">
+                  {/* Model selector */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      <Trans>Model</Trans>
+                    </label>
+                    {netisModels.isLoading
+                      ? (
+                        <div className="py-2 text-sm text-neutral-500">
+                          <Trans>Loading available models...</Trans>
+                        </div>
+                      )
+                      : netisModels.data && netisModels.data.length > 0
+                      ? (
+                        <Select
+                          value={netisSelectedModel}
+                          onValueChange={setNetisSelectedModel}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select model" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {netisModels.data.map((model: string) => (
+                              <SelectItem key={model} value={model}>
+                                {model}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )
+                      : (
+                        <div className="space-y-2">
+                          {netisModels.error && (
+                            <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                              <p className="text-xs text-red-700">
+                                <Trans>Failed to load models. Please enter model name manually.</Trans>
+                              </p>
+                            </div>
+                          )}
+                          <Input
+                            value={netisSelectedModel}
+                            onChange={(e) => setNetisSelectedModel(e.target.value)}
+                            placeholder="gpt-4o"
+                          />
+                        </div>
                       )}
-                    />
-
-                    <FormField
-                      control={customForm.control}
-                      name="api_key"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm font-medium">
-                            <Trans>API Key</Trans>
-                            {customForm.watch("api_base") && isLocalEndpoint() && (
-                              <span className="text-xs font-normal text-neutral-500 ml-2">
-                                <Trans>(Optional for localhost)</Trans>
-                              </span>
-                            )}
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              type="password"
-                              placeholder="sk-..."
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    */}
-
-                    <FormField
-                      control={customForm.control}
-                      name="model"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm font-medium">
-                            <Trans>Model</Trans>
-                          </FormLabel>
-                          <FormControl>
-                            {othersModels.isLoading && !field.value
-                              ? (
-                                <div className="py-1 text-sm text-neutral-500">
-                                  <Trans>Loading available models...</Trans>
-                                </div>
-                              )
-                              : othersModels.data && othersModels.data.length > 0
-                              ? (
-                                <Select
-                                  value={field.value}
-                                  onValueChange={field.onChange}
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select model" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {othersModels.data.map((model) => (
-                                      <SelectItem key={model} value={model}>
-                                        {model}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              )
-                              : (
-                                <Input
-                                  {...field}
-                                  placeholder="gpt-4o"
-                                />
-                              )}
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </form>
-                </Form>
+                  </div>
+                </div>
               </div>
             </div>
           )}
