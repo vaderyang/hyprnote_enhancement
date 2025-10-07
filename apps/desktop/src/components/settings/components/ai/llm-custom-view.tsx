@@ -106,6 +106,15 @@ function LLMCustomViewInner({
         openAccordion === "others"
         && values.api_base && values.api_base !== "https://pro.hyprnote.com" && values.model
       ) {
+        // Check if this configuration is already applied
+        const configKey = `others:${values.api_base}:${values.model}`;
+        const lastKey = lastConfiguredRef.current ? `${lastConfiguredRef.current.provider}:${lastConfiguredRef.current.api_base}:${lastConfiguredRef.current.model}` : null;
+        
+        if (configKey === lastKey) {
+          // Already configured, skip to prevent infinite loop
+          return;
+        }
+        
         try {
           setHyprCloudEnabledMutation.mutate(false);
           // Basic URL validation
@@ -116,6 +125,12 @@ function LLMCustomViewInner({
             api_key: values.api_key,
             model: values.model,
           });
+          // Track this configuration
+          lastConfiguredRef.current = {
+            provider: "others",
+            api_base: values.api_base,
+            model: values.model,
+          };
         } catch {
           // invalid URL
         }
@@ -128,6 +143,11 @@ function LLMCustomViewInner({
     try {
       // Track that user explicitly opened this accordion
       setUserOpenedAccordion(provider);
+      
+      // Reset last configured when switching providers to allow reconfiguration
+      if (openAccordion !== provider) {
+        lastConfiguredRef.current = null;
+      }
 
       // If HyprCloud is active, clicking an accordion should disable it
       if (hyprCloudEnabled?.data) {
@@ -163,6 +183,9 @@ function LLMCustomViewInner({
   const netisGlobalApiKey = String(import.meta.env.VITE_NETIS_GLOBAL_API_KEY ?? "").trim();
   const hasNetisGlobal = netisGlobalApiKey.length > 0;
   const [netisGlobalSelectedModel, setNetisGlobalSelectedModel] = useState("qwen-3-coder-480b");
+  
+  // Track last configured values to prevent redundant configurations
+  const lastConfiguredRef = useRef<{provider: string; api_base: string; model: string} | null>(null);
 
   // Session-level guard to prevent repeated failures
   const ngSessionDisabledRef = useRef<boolean>(
@@ -299,6 +322,15 @@ function LLMCustomViewInner({
     ) {
       return;
     }
+    
+    // Check if this configuration is already applied
+    const configKey = `netis-global:${netisGlobalApiBase}:${netisGlobalSelectedModel}`;
+    const lastKey = lastConfiguredRef.current ? `${lastConfiguredRef.current.provider}:${lastConfiguredRef.current.api_base}:${lastConfiguredRef.current.model}` : null;
+    
+    if (configKey === lastKey) {
+      // Already configured, skip to prevent infinite loop
+      return;
+    }
 
     let cancelled = false;
     const run = async () => {
@@ -310,6 +342,14 @@ function LLMCustomViewInner({
           api_key: netisGlobalApiKey,
           model: netisGlobalSelectedModel,
         });
+        // Track this configuration
+        if (!cancelled) {
+          lastConfiguredRef.current = {
+            provider: "netis-global",
+            api_base: netisGlobalApiBase,
+            model: netisGlobalSelectedModel,
+          };
+        }
       } catch (err) {
         console.error("Error in Netis Global auto-config:", err);
         if (!cancelled) {
