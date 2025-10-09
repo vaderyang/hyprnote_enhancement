@@ -52,6 +52,10 @@ impl ListenClientBuilder {
     fn build_uri(&self, channels: u8) -> String {
         let mut url: url::Url = self.api_base.as_ref().unwrap().parse().unwrap();
 
+        if matches!(url.scheme(), "ws" | "wss") {
+            return url.to_string();
+        }
+
         let params = owhisper_interface::ListenParams {
             channels,
             ..self.params.clone().unwrap_or_default()
@@ -363,158 +367,6 @@ impl ListenClientDual {
                 println!("[STT API Error] Failed to establish WebSocket connection: {:?}", error);
                 Err(error)
             }
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    use futures_util::StreamExt;
-    use hypr_audio_utils::AudioFormatExt;
-
-    #[tokio::test]
-    // cargo test -p owhisper-client test_client_deepgram -- --nocapture
-    async fn test_client_deepgram() {
-        let _ = tracing_subscriber::fmt::try_init();
-
-        let audio = rodio::Decoder::new(std::io::BufReader::new(
-            std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
-        ))
-        .unwrap()
-        .to_i16_le_chunks(16000, 512);
-
-        let input = Box::pin(tokio_stream::StreamExt::throttle(
-            audio.map(|chunk| ListenClientInput::Audio(chunk)),
-            std::time::Duration::from_millis(20),
-        ));
-
-        let client = ListenClient::builder()
-            .api_base("https://api.deepgram.com")
-            .api_key(std::env::var("DEEPGRAM_API_KEY").unwrap())
-            .params(owhisper_interface::ListenParams {
-                model: Some("nova-3".to_string()),
-                languages: vec![
-                    hypr_language::ISO639::En.into(),
-                    hypr_language::ISO639::Es.into(),
-                ],
-                ..Default::default()
-            })
-            .build_single();
-
-        let (stream, _) = client.from_realtime_audio(input).await.unwrap();
-        futures_util::pin_mut!(stream);
-
-        while let Some(result) = stream.next().await {
-            match result {
-                Ok(response) => match response {
-                    StreamResponse::TranscriptResponse { channel, .. } => {
-                        println!("{:?}", channel.alternatives.first().unwrap().transcript);
-                    }
-                    _ => {}
-                },
-                _ => {}
-            }
-        }
-    }
-
-    #[tokio::test]
-    // cargo test -p owhisper-client test_owhisper_with_owhisper -- --nocapture
-    async fn test_owhisper_with_owhisper() {
-        let audio = rodio::Decoder::new(std::io::BufReader::new(
-            std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
-        ))
-        .unwrap()
-        .to_i16_le_chunks(16000, 512);
-        let input = audio.map(|chunk| ListenClientInput::Audio(chunk));
-
-        let client = ListenClient::builder()
-            .api_base("ws://127.0.0.1:52693")
-            .api_key("".to_string())
-            .params(owhisper_interface::ListenParams {
-                model: Some("whisper-cpp-small-q8".to_string()),
-                languages: vec![hypr_language::ISO639::En.into()],
-                ..Default::default()
-            })
-            .build_single();
-
-        let (stream, _) = client.from_realtime_audio(input).await.unwrap();
-        futures_util::pin_mut!(stream);
-
-        while let Some(result) = stream.next().await {
-            println!("{:?}", result);
-        }
-    }
-
-    #[tokio::test]
-    // cargo test -p owhisper-client test_owhisper_with_deepgram -- --nocapture
-    async fn test_owhisper_with_deepgram() {
-        let audio = rodio::Decoder::new(std::io::BufReader::new(
-            std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
-        ))
-        .unwrap()
-        .to_i16_le_chunks(16000, 512)
-        .map(Ok::<_, std::io::Error>);
-
-        let mut stream =
-            deepgram::Deepgram::with_base_url_and_api_key("ws://127.0.0.1:52978", "TODO")
-                .unwrap()
-                .transcription()
-                .stream_request_with_options(
-                    deepgram::common::options::Options::builder()
-                        .language(deepgram::common::options::Language::en)
-                        .model(deepgram::common::options::Model::CustomId(
-                            "whisper-cpp-small-q8".to_string(),
-                        ))
-                        .build(),
-                )
-                .channels(1)
-                .encoding(deepgram::common::options::Encoding::Linear16)
-                .sample_rate(16000)
-                .stream(audio)
-                .await
-                .unwrap();
-
-        while let Some(result) = stream.next().await {
-            println!("{:?}", result);
-        }
-    }
-
-    #[tokio::test]
-    // cargo test -p owhisper-client test_client_ag -- --nocapture
-    async fn test_client_ag() {
-        let audio_1 = rodio::Decoder::new(std::io::BufReader::new(
-            std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
-        ))
-        .unwrap()
-        .to_i16_le_chunks(16000, 512);
-
-        let audio_2 = rodio::Decoder::new(std::io::BufReader::new(
-            std::fs::File::open(hypr_data::english_1::AUDIO_PATH).unwrap(),
-        ))
-        .unwrap()
-        .to_i16_le_chunks(16000, 512);
-
-        let input = audio_1
-            .zip(audio_2)
-            .map(|(mic, speaker)| ListenClientDualInput::Audio((mic, speaker)));
-
-        let client = ListenClient::builder()
-            .api_base("ws://localhost:50060")
-            .api_key("".to_string())
-            .params(owhisper_interface::ListenParams {
-                model: Some("tiny.en".to_string()),
-                languages: vec![hypr_language::ISO639::En.into()],
-                ..Default::default()
-            })
-            .build_dual();
-
-        let (stream, _) = client.from_realtime_audio(input).await.unwrap();
-        futures_util::pin_mut!(stream);
-
-        while let Some(result) = stream.next().await {
-            println!("{:?}", result);
         }
     }
 }

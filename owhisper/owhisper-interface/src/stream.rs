@@ -131,37 +131,3 @@ impl StreamResponse {
         }
     }
 }
-
-#[cfg(test)]
-mod test {
-    use super::*;
-    use deepgram::common::stream_response as DG;
-
-    #[test]
-    fn ensure_types() {
-        let dg = DG::StreamResponse::TranscriptResponse {
-            type_field: "Results".to_string(),
-            start: 0.0,
-            duration: 0.0,
-            is_final: false,
-            speech_final: false,
-            from_finalize: false,
-            channel: DG::Channel {
-                alternatives: vec![],
-            },
-            metadata: DG::Metadata {
-                request_id: "".to_string(),
-                model_info: DG::ModelInfo {
-                    name: "".to_string(),
-                    version: "".to_string(),
-                    arch: "".to_string(),
-                },
-                model_uuid: "".to_string(),
-            },
-            channel_index: vec![],
-        };
-
-        let serialized = serde_json::to_string(&dg).unwrap();
-        let _: StreamResponse = serde_json::from_str(&serialized).unwrap();
-    }
-}

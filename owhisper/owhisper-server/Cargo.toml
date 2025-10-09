@@ -36,7 +36,7 @@ hypr-language = { workspace = true }
 
 hypr-transcribe-aws = { workspace = true }
 hypr-transcribe-azure = { workspace = true }
-hypr-transcribe-deepgram = { workspace = true }
+hypr-transcribe-funasr = { workspace = true }
 hypr-transcribe-gcp = { workspace = true }
 hypr-transcribe-moonshine = { workspace = true }
 hypr-transcribe-openai = { workspace = true }

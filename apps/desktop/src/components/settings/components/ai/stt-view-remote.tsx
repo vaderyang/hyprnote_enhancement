@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 import { commands as localSttCommands } from "@hypr/plugin-local-stt";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@hypr/ui/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormMessage } from "@hypr/ui/components/ui/form";
 import { Input } from "@hypr/ui/components/ui/input";
 import { cn } from "@hypr/ui/lib/utils";
 
@@ -20,14 +20,9 @@ export function STTViewRemote({
     queryFn: () => localSttCommands.getCustomBaseUrl(),
   });
 
-  const apiKeyQuery = useQuery({
-    queryKey: ["custom-stt-api-key"],
-    queryFn: () => localSttCommands.getCustomApiKey(),
-  });
-
-  const modelQuery = useQuery({
-    queryKey: ["custom-stt-model"],
-    queryFn: () => localSttCommands.getCustomModel(),
+  const streamingUrlQuery = useQuery({
+    queryKey: ["custom-stt-streaming-url"],
+    queryFn: () => localSttCommands.getCustomStreamingUrl(),
   });
 
   const setApiBaseMutation = useMutation({
@@ -35,46 +30,36 @@ export function STTViewRemote({
     onSuccess: () => apiBaseQuery.refetch(),
   });
 
-  const setApiKeyMutation = useMutation({
-    mutationFn: (apiKey: string) => localSttCommands.setCustomApiKey(apiKey),
-    onSuccess: () => apiKeyQuery.refetch(),
-  });
-
-  const setModelMutation = useMutation({
-    mutationFn: (model: string) => localSttCommands.setCustomModel(model),
-    onSuccess: () => modelQuery.refetch(),
+  const setStreamingUrlMutation = useMutation({
+    mutationFn: (streamingUrl: string) => localSttCommands.setCustomStreamingUrl(streamingUrl),
+    onSuccess: () => streamingUrlQuery.refetch(),
   });
 
   const form = useForm({
     defaultValues: {
-      api_base: "http://v.netis.com.cn:13000",
-      api_key: "sk-none",
-      model: "nova-2",
+      http_url: "http://172.16.103.100:10001/recognition",
+      ws_url: "ws://172.16.103.100:10095",
     },
   });
 
   useEffect(() => {
     form.reset({
-      api_base: apiBaseQuery.data || "http://v.netis.com.cn:13000",
-      api_key: apiKeyQuery.data || "sk-none",
-      model: modelQuery.data || "nova-2",
+      http_url: apiBaseQuery.data || "http://172.16.103.100:10001/recognition",
+      ws_url: streamingUrlQuery.data || "ws://172.16.103.100:10095",
     });
-  }, [apiBaseQuery.data, apiKeyQuery.data, modelQuery.data, form]);
+  }, [apiBaseQuery.data, streamingUrlQuery.data, form]);
 
   useEffect(() => {
     const subscription = form.watch((values, { name }) => {
-      if (name === "api_base") {
-        setApiBaseMutation.mutate(values.api_base || "");
+      if (name === "http_url") {
+        setApiBaseMutation.mutate(values.http_url || "");
       }
-      if (name === "api_key") {
-        setApiKeyMutation.mutate(values.api_key || "");
-      }
-      if (name === "model") {
-        setModelMutation.mutate(values.model || "");
+      if (name === "ws_url") {
+        setStreamingUrlMutation.mutate(values.ws_url || "");
       }
     });
     return () => subscription.unsubscribe();
-  }, [form.watch, setApiBaseMutation, setApiKeyMutation, setModelMutation]);
+  }, [form.watch, setApiBaseMutation, setStreamingUrlMutation]);
 
   const isSelected = provider === "Custom";
 
@@ -98,7 +83,7 @@ export function STTViewRemote({
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
                   <span className="font-medium">
-                    <Trans>Netis Speech-to-Text endpoint</Trans>
+                    <Trans>FunASR Speech-to-Text endpoint</Trans>
                   </span>
                   {/* Preview badge (HIDDEN)
                   <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
@@ -107,7 +92,7 @@ export function STTViewRemote({
                   */}
                 </div>
                 <p className="text-xs font-normal text-neutral-500 mt-1">
-                  <Trans>Connect to Netis STT Model service</Trans>
+                  <Trans>Connect to FunASR streaming and offline transcription services</Trans>
                 </p>
               </div>
             </div>
@@ -117,76 +102,46 @@ export function STTViewRemote({
             <div className="mt-4">
               <Form {...form}>
                 <form className="space-y-6">
-                  {/* Base URL and API Key fields (HIDDEN)
                   <div className="space-y-1">
                     <h3 className="text-sm font-semibold">
-                      <Trans>Base URL</Trans>
+                      <Trans>Streaming WebSocket URL</Trans>
                     </h3>
                     <FormField
                       control={form.control}
-                      name="api_base"
+                      name="ws_url"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="ws://172.16.103.100:10095"
+                              onClick={(e) => e.stopPropagation()}
+                              onFocus={() => setProviderToCustom()}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-semibold">
+                      <Trans>Offline HTTP URL</Trans>
+                    </h3>
+                    <FormField
+                      control={form.control}
+                      name="http_url"
                       render={({ field }) => (
                         <FormItem>
                           <FormDescription className="text-xs">
-                            <Trans>Enter the base URL for your custom STT endpoint</Trans>
+                            <Trans>Endpoint used for offline transcription of uploaded recordings</Trans>
                           </FormDescription>
                           <FormControl>
                             <Input
                               {...field}
-                              placeholder="https://api.deepgram.com"
+                              placeholder="http://172.16.103.100:10001/recognition"
                               className="placeholder:text-gray-400"
-                              onClick={(e) => e.stopPropagation()}
-                              onFocus={() => setProviderToCustom()}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-semibold">
-                      <Trans>API Key</Trans>
-                    </h3>
-                    <FormField
-                      control={form.control}
-                      name="api_key"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormDescription className="text-xs">
-                            <Trans>Your authentication key for accessing the STT service</Trans>
-                          </FormDescription>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              type="password"
-                              placeholder="your-api-key"
-                              onClick={(e) => e.stopPropagation()}
-                              onFocus={() => setProviderToCustom()}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  */}
-
-                  {/* Model Section */}
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-semibold">
-                      <Trans>Model</Trans>
-                    </h3>
-                    <FormField
-                      control={form.control}
-                      name="model"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              placeholder="nova-2"
                               onClick={(e) => e.stopPropagation()}
                               onFocus={() => setProviderToCustom()}
                             />

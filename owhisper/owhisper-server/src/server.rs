@@ -31,7 +31,7 @@ pub struct AppState {
 #[derive(Clone)]
 pub enum TranscriptionService {
     Aws(hypr_transcribe_aws::TranscribeService),
-    Deepgram(hypr_transcribe_deepgram::TranscribeService),
+    Funasr(hypr_transcribe_funasr::TranscribeService),
     WhisperCpp(hypr_transcribe_whisper_local::TranscribeService),
     Moonshine(hypr_transcribe_moonshine::TranscribeService),
 }
@@ -55,8 +55,8 @@ impl Server {
                 owhisper_config::ModelConfig::Aws(config) => {
                     TranscriptionService::Aws(build_aws_service(config).await?)
                 }
-                owhisper_config::ModelConfig::Deepgram(config) => {
-                    TranscriptionService::Deepgram(build_deepgram_service(config).await?)
+                owhisper_config::ModelConfig::Funasr(config) => {
+                    TranscriptionService::Funasr(build_funasr_service(config).await?)
                 }
                 owhisper_config::ModelConfig::WhisperCpp(config) => {
                     TranscriptionService::WhisperCpp(build_whisper_cpp_service(config)?)
@@ -68,7 +68,7 @@ impl Server {
 
             let id = match model {
                 owhisper_config::ModelConfig::Aws(c) => &c.id,
-                owhisper_config::ModelConfig::Deepgram(c) => &c.id,
+                owhisper_config::ModelConfig::Funasr(c) => &c.id,
                 owhisper_config::ModelConfig::WhisperCpp(c) => &c.id,
                 owhisper_config::ModelConfig::Moonshine(c) => &c.id,
             };
@@ -148,12 +148,12 @@ async fn build_aws_service(
         .map_err(|e| anyhow::anyhow!("Failed to create AWS service: {}", e))
 }
 
-async fn build_deepgram_service(
-    config: &owhisper_config::DeepgramModelConfig,
-) -> anyhow::Result<hypr_transcribe_deepgram::TranscribeService> {
-    hypr_transcribe_deepgram::TranscribeService::new(config.clone())
+async fn build_funasr_service(
+    config: &owhisper_config::FunasrModelConfig,
+) -> anyhow::Result<hypr_transcribe_funasr::TranscribeService> {
+    hypr_transcribe_funasr::TranscribeService::new(config.clone())
         .await
-        .map_err(|e| anyhow::anyhow!("Failed to create Deepgram service: {}", e))
+        .map_err(|e| anyhow::anyhow!("Failed to create FunASR service: {}", e))
 }
 
 fn build_whisper_cpp_service(
@@ -227,12 +227,12 @@ async fn handle_transcription(
                 )
             })
         }
-        TranscriptionService::Deepgram(svc) => {
+        TranscriptionService::Funasr(svc) => {
             let mut svc_clone = svc.clone();
             svc_clone.call(req).await.map_err(|_| {
                 (
                     StatusCode::INTERNAL_SERVER_ERROR,
-                    "deepgram_server_error".to_string(),
+                    "funasr_server_error".to_string(),
                 )
             })
         }

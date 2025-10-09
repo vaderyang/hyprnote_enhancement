@@ -17,6 +17,9 @@ use crate::{
     Connection, Provider, StoreKey,
 };
 
+const DEFAULT_FUNASR_HTTP_URL: &str = "http://172.16.103.100:10001/recognition";
+const DEFAULT_FUNASR_WS_URL: &str = "ws://172.16.103.100:10095";
+
 pub trait LocalSttPluginExt<R: Runtime> {
     fn local_stt_store(&self) -> tauri_plugin_store2::ScopedStore<R, StoreKey>;
 
@@ -25,6 +28,8 @@ pub trait LocalSttPluginExt<R: Runtime> {
 
     fn get_custom_base_url(&self) -> Result<String, crate::Error>;
     fn set_custom_base_url(&self, base_url: impl Into<String>) -> Result<(), crate::Error>;
+    fn get_custom_streaming_url(&self) -> Result<String, crate::Error>;
+    fn set_custom_streaming_url(&self, url: impl Into<String>) -> Result<(), crate::Error>;
     fn get_custom_api_key(&self) -> Result<Option<String>, crate::Error>;
     fn set_custom_api_key(&self, api_key: impl Into<String>) -> Result<(), crate::Error>;
     fn get_provider(&self) -> Result<Provider, crate::Error>;
@@ -81,8 +86,20 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
 
     fn get_custom_base_url(&self) -> Result<String, crate::Error> {
         let store = self.local_stt_store();
-        let v = store.get(StoreKey::CustomBaseUrl)?;
-        Ok(v.unwrap_or_default())
+        let v: Option<String> = store.get(StoreKey::CustomBaseUrl)?;
+        Ok(match v {
+            Some(url) if !url.trim().is_empty() => url,
+            _ => DEFAULT_FUNASR_HTTP_URL.to_string(),
+        })
+    }
+
+    fn get_custom_streaming_url(&self) -> Result<String, crate::Error> {
+        let store = self.local_stt_store();
+        let v: Option<String> = store.get(StoreKey::CustomStreamingUrl)?;
+        Ok(match v {
+            Some(url) if !url.trim().is_empty() => url,
+            _ => DEFAULT_FUNASR_WS_URL.to_string(),
+        })
     }
 
     fn get_custom_api_key(&self) -> Result<Option<String>, crate::Error> {
@@ -100,6 +117,12 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
     fn set_custom_base_url(&self, base_url: impl Into<String>) -> Result<(), crate::Error> {
         let store = self.local_stt_store();
         store.set(StoreKey::CustomBaseUrl, base_url.into())?;
+        Ok(())
+    }
+
+    fn set_custom_streaming_url(&self, url: impl Into<String>) -> Result<(), crate::Error> {
+        let store = self.local_stt_store();
+        store.set(StoreKey::CustomStreamingUrl, url.into())?;
         Ok(())
     }
 
@@ -135,10 +158,16 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
             Provider::Custom => {
                 let model = self.get_custom_model()?;
                 let base_url = self.get_custom_base_url()?;
+                let streaming_url = self.get_custom_streaming_url()?;
                 let api_key = self.get_custom_api_key()?;
                 Ok(Connection {
                     model: model.map(|m| m.to_string()),
                     base_url,
+                    streaming_url: if streaming_url.is_empty() {
+                        None
+                    } else {
+                        Some(streaming_url)
+                    },
                     api_key,
                 })
             }
@@ -149,9 +178,15 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                     SupportedSttModel::Custom(_) => {
                         let base_url = self.get_custom_base_url()?;
                         let api_key = self.get_custom_api_key()?;
+                        let streaming_url = self.get_custom_streaming_url()?;
                         Ok(Connection {
                             model: None,
                             base_url,
+                            streaming_url: if streaming_url.is_empty() {
+                                None
+                            } else {
+                                Some(streaming_url)
+                            },
                             api_key,
                         })
                     }
@@ -168,6 +203,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                             Some(api_base) => Connection {
                                 model: None,
                                 base_url: api_base,
+                                streaming_url: None,
                                 api_key: Some(am_key),
                             },
                             None => {
@@ -175,6 +211,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                                 Connection {
                                     model: None,
                                     base_url: api_base,
+                                    streaming_url: None,
                                     api_key: Some(am_key),
                                 }
                             }
@@ -188,6 +225,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                             Some(api_base) => Connection {
                                 model: None,
                                 base_url: api_base,
+                                streaming_url: None,
                                 api_key: None,
                             },
                             None => {
@@ -195,6 +233,7 @@ impl<R: Runtime, T: Manager<R>> LocalSttPluginExt<R> for T {
                                 Connection {
                                     model: None,
                                     base_url: api_base,
+                                    streaming_url: None,
                                     api_key: None,
                                 }
                             }

@@ -230,8 +230,14 @@ async fn spawn_rx_task(
         app.get_connection().await?
     };
 
+    let streaming_base = conn
+        .streaming_url
+        .clone()
+        .filter(|url| !url.is_empty())
+        .unwrap_or_else(|| conn.base_url.clone());
+
     let client = owhisper_client::ListenClient::builder()
-        .api_base(conn.base_url)
+        .api_base(streaming_base)
         .api_key(conn.api_key.unwrap_or_default())
         .params(owhisper_interface::ListenParams {
             model: conn.model,

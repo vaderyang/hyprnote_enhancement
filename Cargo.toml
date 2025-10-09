@@ -67,7 +67,7 @@ hypr-tcc = { path = "crates/tcc", package = "tcc" }
 hypr-template = { path = "crates/template", package = "template" }
 hypr-transcribe-aws = { path = "crates/transcribe-aws", package = "transcribe-aws" }
 hypr-transcribe-azure = { path = "crates/transcribe-azure", package = "transcribe-azure" }
-hypr-transcribe-deepgram = { path = "crates/transcribe-deepgram", package = "transcribe-deepgram" }
+hypr-transcribe-funasr = { path = "crates/transcribe-funasr", package = "transcribe-funasr" }
 hypr-transcribe-gcp = { path = "crates/transcribe-gcp", package = "transcribe-gcp" }
 hypr-transcribe-moonshine = { path = "crates/transcribe-moonshine", package = "transcribe-moonshine" }
 hypr-transcribe-openai = { path = "crates/transcribe-openai", package = "transcribe-openai" }
@@ -221,7 +221,6 @@ kalosm-model-types = { git = "https://github.com/floneum/floneum", rev = "52967a
 kalosm-sound = { git = "https://github.com/floneum/floneum", rev = "52967ae", default-features = false }
 kalosm-streams = { git = "https://github.com/floneum/floneum", rev = "52967ae" }
 
-deepgram = { version = "0.6.8", default-features = false }
 libsql = "0.9.24"
 
 block2 = "0.6"

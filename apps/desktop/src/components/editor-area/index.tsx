@@ -558,6 +558,7 @@ export function useEnhanceMutation({
 
   const originalContentRef = useRef<string>("");
   const usedTemplateIdRef = useRef<string | null>(null);
+  const WATCHDOG_TIMEOUT_MS = Number(import.meta.env.VITE_ENHANCE_WATCHDOG_TIMEOUT_MS ?? 45000) || 45000;
 
   const enhance = useMutation({
     mutationKey: ["enhance", sessionId],
@@ -573,6 +574,18 @@ export function useEnhanceMutation({
 
       await queryClient.invalidateQueries({ queryKey: ["llm-connection"] });
       await new Promise(resolve => setTimeout(resolve, 100));
+
+      let watchdogTimer: ReturnType<typeof setTimeout> | null = null;
+      const refreshWatchdog = () => {
+        if (watchdogTimer) {
+          clearTimeout(watchdogTimer);
+        }
+        watchdogTimer = setTimeout(() => {
+          console.warn("⏰ Enhancement watchdog triggered, aborting request");
+          abortController.abort("watchdog-timeout");
+        }, WATCHDOG_TIMEOUT_MS);
+      };
+      refreshWatchdog();
 
       const getWordsFunc = sessionId === onboardingSessionId ? dbCommands.getWordsOnboarding : dbCommands.getWords;
 
@@ -722,23 +735,30 @@ export function useEnhanceMutation({
 
       let acc = "";
 
-      for await (const chunk of fullStream) {
-        if (chunk.type === "text-delta") {
-          acc += chunk.text;
-        }
-        if (chunk.type === "error") {
-          if (originalContentRef.current !== "" && acc === "") {
-            setEnhancedContent(originalContentRef.current);
+      try {
+        for await (const chunk of fullStream) {
+          refreshWatchdog();
+          if (chunk.type === "text-delta") {
+            acc += chunk.text;
           }
-          throw new Error(String(chunk.error));
-        }
-        if (chunk.type === "tool-call" && freshIsLocalLlm) {
-          const chunkProgress = chunk.input?.progress ?? 0;
-          setProgress(chunkProgress);
-        }
+          if (chunk.type === "error") {
+            if (originalContentRef.current !== "" && acc === "") {
+              setEnhancedContent(originalContentRef.current);
+            }
+            throw new Error(String(chunk.error));
+          }
+          if (chunk.type === "tool-call" && freshIsLocalLlm) {
+            const chunkProgress = chunk.input?.progress ?? 0;
+            setProgress(chunkProgress);
+          }
 
-        const html = await miscCommands.opinionatedMdToHtml(acc);
-        setEnhancedContent(html);
+          const html = await miscCommands.opinionatedMdToHtml(acc);
+          setEnhancedContent(html);
+        }
+      } finally {
+        if (watchdogTimer) {
+          clearTimeout(watchdogTimer);
+        }
       }
 
       return text.then(miscCommands.opinionatedMdToHtml);
@@ -793,16 +813,30 @@ export function useEnhanceMutation({
     onError: (error) => {
       console.error(error);
 
-      const isCancellationError = (error as unknown as string).includes("cancel")
-        || (error as any)?.name === "AbortError";
+      const errorString = String(error ?? "");
+      const isWatchdogTimeout = errorString.includes("watchdog-timeout");
+      const isCancellationError = ((error as unknown as string).includes("cancel")
+        || (error as any)?.name === "AbortError") && !isWatchdogTimeout;
 
       setIsCancelled(isCancellationError);
+      usedTemplateIdRef.current = null;
+      if (originalContentRef.current) {
+        setEnhancedContent(originalContentRef.current);
+      }
 
       if (actualIsLocalLlm) {
         setProgress(0);
       }
 
-      if (!isCancellationError) {
+      if (isWatchdogTimeout) {
+        toast({
+          id: "enhance-watchdog-timeout",
+          title: "Enhancement timed out",
+          content: "The AI response took too long. Please try again when your connection is stable.",
+          dismissible: true,
+          duration: 6000,
+        });
+      } else if (!isCancellationError) {
         enhanceFailedToast();
       }
 

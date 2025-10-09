@@ -9,7 +9,7 @@ import { toast } from "@hypr/ui/components/ui/toast";
 import { Button } from "@hypr/ui/components/ui/button";
 import { cn } from "@hypr/ui/lib/utils";
 import React, { useState } from "react";
-import { SharedCustomEndpointProps } from "./shared";
+import { CustomFormValues, SharedCustomEndpointProps } from "./shared";
 
 // Model lists hidden for Netis deployment
 // const openaiModels = [...];
@@ -393,7 +393,38 @@ function LLMCustomViewInner({
   });
 
   // Netis selected model state (separate from Netis Global)
-  const [netisSelectedModel, setNetisSelectedModel] = useState(DEFAULT_NETIS_CONFIG.current.model);
+  const [netisSelectedModel, setNetisSelectedModel] = useState(() => {
+    const initialModel = customForm.getValues("model");
+    return initialModel && typeof initialModel === "string" && initialModel.trim().length > 0
+      ? initialModel
+      : DEFAULT_NETIS_CONFIG.current.model;
+  });
+
+  useEffect(() => {
+    if (openAccordion === "others") {
+      const currentModel = customForm.getValues("model");
+      if (typeof currentModel === "string" && currentModel.trim().length > 0) {
+        setNetisSelectedModel((prev) => (prev === currentModel ? prev : currentModel));
+        DEFAULT_NETIS_CONFIG.current.model = currentModel;
+      }
+    }
+  }, [openAccordion, customForm]);
+
+  useEffect(() => {
+    const subscription = customForm.watch((values, { name }) => {
+      if (name && name !== "model") {
+        return;
+      }
+
+      const modelValue = (values as Partial<CustomFormValues> | undefined)?.model;
+      if (typeof modelValue === "string" && modelValue.trim().length > 0) {
+        DEFAULT_NETIS_CONFIG.current.model = modelValue;
+        setNetisSelectedModel((prev) => (prev === modelValue ? prev : modelValue));
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [customForm]);
 
   // Auto-configure Netis when model is selected
   useEffect(() => {

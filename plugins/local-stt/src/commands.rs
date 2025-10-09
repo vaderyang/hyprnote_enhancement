@@ -118,6 +118,14 @@ pub fn get_custom_base_url<R: tauri::Runtime>(app: tauri::AppHandle<R>) -> Resul
 
 #[tauri::command]
 #[specta::specta]
+pub fn get_custom_streaming_url<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+) -> Result<String, String> {
+    app.get_custom_streaming_url().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub fn get_custom_api_key<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
 ) -> Result<Option<String>, String> {
@@ -131,6 +139,16 @@ pub fn set_custom_base_url<R: tauri::Runtime>(
     base_url: String,
 ) -> Result<(), String> {
     app.set_custom_base_url(base_url).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn set_custom_streaming_url<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    streaming_url: String,
+) -> Result<(), String> {
+    app.set_custom_streaming_url(streaming_url)
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -190,65 +208,50 @@ pub async fn transcribe_audio_file<R: tauri::Runtime>(
 
     match provider {
         crate::Provider::Custom => {
-            tracing::info!("Using Custom provider (Deepgram/Netis)");
-            // Use custom endpoint (Deepgram REST API)
+            tracing::info!("Using Custom provider (FunASR)");
             let _ = channel.send(10);
 
-            let base_url = app.get_custom_base_url().map_err(|e| e.to_string())?;
-            let api_key = app.get_custom_api_key().map_err(|e| e.to_string())?;
+            let http_url = app.get_custom_base_url().map_err(|e| e.to_string())?;
+            let streaming_url = app.get_custom_streaming_url().map_err(|e| e.to_string())?;
             let custom_model = app.get_custom_model().map_err(|e| e.to_string())?;
 
-            tracing::info!("Custom config - base_url: {}, model: {:?}", base_url, custom_model);
+            tracing::info!(
+                "Custom config - http_url: {}, streaming_url: {}, model: {:?}",
+                http_url,
+                streaming_url,
+                custom_model
+            );
 
             let _ = channel.send(20);
 
-            // Get jargons from general config for custom vocabulary
-            let keywords = {
-                let user_id = app.db_user_id().await.map_err(|e| e.to_string())?;
-                if let Some(uid) = user_id {
-                    let config = app.db_get_config(&uid).await.map_err(|e| e.to_string())?;
-                    if let Some(cfg) = config {
-                        let jargons = cfg.general.jargons;
-                        if !jargons.is_empty() {
-                            Some(jargons.join(", "))
-                        } else {
-                            None
-                        }
-                    } else {
-                        None
-                    }
-                } else {
+            let model_name = custom_model.map(|m| m.to_string());
+
+            let config = owhisper_config::FunasrModelConfig {
+                id: model_name.unwrap_or_else(|| "funasr".to_string()),
+                http_url: Some(http_url.clone()),
+                ws_url: if streaming_url.trim().is_empty() {
                     None
-                }
-            };
-
-            let _ = channel.send(30);
-
-            let config = owhisper_config::DeepgramModelConfig {
-                base_url: Some(base_url.clone()),
-                api_key,
+                } else {
+                    Some(streaming_url.clone())
+                },
+                enable_speaker: Some(true),
                 ..Default::default()
             };
 
-            let model_name = custom_model.map(|m| m.to_string());
-
-            tracing::info!("Preparing to call Deepgram API with model: {:?}, keywords: {:?}", model_name, keywords);
             let _ = channel.send(50);
 
-            let result = hypr_transcribe_deepgram::TranscribeService::transcribe_file(
-                config,
-                file_path.clone(),
-                model_name,
-                Some("multi".to_string()),
-                keywords,
-            )
-            .await
-            .map_err(|e| {
-                tracing::error!("Deepgram transcription failed: {}", e);
-                e.to_string()
-            })?;
+            let result =
+                hypr_transcribe_funasr::TranscribeService::transcribe_file_with_config(
+                    config,
+                    file_path.clone(),
+                )
+                .await
+                .map_err(|e| {
+                    tracing::error!("FunASR transcription failed: {}", e);
+                    e.to_string()
+                })?;
 
-            tracing::info!("Deepgram transcription succeeded, words count: {}", result.len());
+            tracing::info!("FunASR transcription succeeded, words count: {}", result.len());
             let _ = channel.send(100);
 
             Ok(result)

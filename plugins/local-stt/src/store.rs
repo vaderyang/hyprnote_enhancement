@@ -11,6 +11,7 @@ pub enum StoreKey {
     CustomModel,
     CustomBaseUrl,
     CustomApiKey,
+    CustomStreamingUrl,
 }
 
 #[derive(

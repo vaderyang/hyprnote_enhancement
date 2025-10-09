@@ -46,11 +46,17 @@ async listSupportedLanguages(model: SupportedSttModel) : Promise<Language[]> {
 async getCustomBaseUrl() : Promise<string> {
     return await TAURI_INVOKE("plugin:local-stt|get_custom_base_url");
 },
+async getCustomStreamingUrl() : Promise<string> {
+    return await TAURI_INVOKE("plugin:local-stt|get_custom_streaming_url");
+},
 async getCustomApiKey() : Promise<string | null> {
     return await TAURI_INVOKE("plugin:local-stt|get_custom_api_key");
 },
 async setCustomBaseUrl(baseUrl: string) : Promise<null> {
     return await TAURI_INVOKE("plugin:local-stt|set_custom_base_url", { baseUrl });
+},
+async setCustomStreamingUrl(streamingUrl: string) : Promise<null> {
+    return await TAURI_INVOKE("plugin:local-stt|set_custom_streaming_url", { streamingUrl });
 },
 async setCustomApiKey(apiKey: string) : Promise<null> {
     return await TAURI_INVOKE("plugin:local-stt|set_custom_api_key", { apiKey });

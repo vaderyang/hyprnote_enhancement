@@ -212,30 +212,6 @@ export default function General() {
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="saveRecordings"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between">
-                <div>
-                  <FormLabel>
-                    <Trans>Save recordings</Trans>
-                  </FormLabel>
-                  <FormDescription>
-                    <Trans>Save audio recording locally alongside the transcript.</Trans>
-                  </FormDescription>
-                </div>
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    color="gray"
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-
           {/* Share usage data setting (HIDDEN)
           <FormField
             control={form.control}

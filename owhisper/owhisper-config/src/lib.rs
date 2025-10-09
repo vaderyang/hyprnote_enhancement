@@ -25,8 +25,8 @@ common_derives! {
     pub enum ModelConfig {
         #[serde(rename = "aws")]
         Aws(AwsModelConfig),
-        #[serde(rename = "deepgram")]
-        Deepgram(DeepgramModelConfig),
+        #[serde(rename = "funasr")]
+        Funasr(FunasrModelConfig),
         #[serde(rename = "whisper-cpp")]
         WhisperCpp(WhisperCppModelConfig),
         #[serde(rename = "moonshine")]
@@ -38,7 +38,7 @@ impl ModelConfig {
     pub fn id(&self) -> &str {
         match self {
             ModelConfig::Aws(config) => &config.id,
-            ModelConfig::Deepgram(config) => &config.id,
+            ModelConfig::Funasr(config) => &config.id,
             ModelConfig::WhisperCpp(config) => &config.id,
             ModelConfig::Moonshine(config) => &config.id,
         }
@@ -93,10 +93,16 @@ common_derives! {
 
 common_derives! {
     #[derive(Default)]
-    pub struct DeepgramModelConfig {
+    pub struct FunasrModelConfig {
         pub id: String,
-        pub api_key: Option<String>,
-        pub base_url: Option<String>,
+        pub ws_url: Option<String>,
+        pub http_url: Option<String>,
+        pub mode: Option<String>,
+        pub chunk_size: Option<Vec<u32>>,
+        pub chunk_interval: Option<u32>,
+        pub sample_rate: Option<u32>,
+        pub input_sample_rate: Option<u32>,
+        pub enable_speaker: Option<bool>,
     }
 }
 

@@ -77,21 +77,68 @@
             "type": {
               "type": "string",
               "enum": [
-                "deepgram"
+                "funasr"
               ]
             },
             "id": {
               "type": "string"
             },
-            "api_key": {
+            "ws_url": {
               "type": [
                 "string",
                 "null"
               ]
             },
-            "base_url": {
+            "http_url": {
               "type": [
                 "string",
+                "null"
+              ]
+            },
+            "mode": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "chunk_size": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "integer",
+                "format": "uint32",
+                "minimum": 0.0
+              }
+            },
+            "chunk_interval": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "sample_rate": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "input_sample_rate": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "enable_speaker": {
+              "type": [
+                "boolean",
                 "null"
               ]
             }
